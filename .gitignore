@@ -1,0 +1,16 @@
+marimo
+.DS_Store
+**/build/
+depo24.code-workspace
+**/.vscode/
+**/node_modules/
+**/.venv/
+**/database/
+*.jar
+*.pyc
+**/__pycache__/
+
+vite.config.js
+package.json
+package-lock.json
+jsconfig.json

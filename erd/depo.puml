@@ -1,0 +1,123 @@
+@startuml depo_erd
+'https://plantuml.com/object-diagram
+'Opt+D to Preview
+
+<style>
+    document {
+        BackGroundColor Linen
+    }
+    root {
+        FontColor #?black:white
+        LineColor gray
+    }
+</style>
+
+title DEPO_ERD
+
+
+
+object CashOpetation {
+    id: PK
+    operationId
+    typeId
+    date
+    accountId: FK
+}
+
+object BondTradeTransaction {
+    id: PK
+    tradeId
+    date_time
+    accountId: FK
+    typeId
+    bondId: FK
+    price
+    tradeCurrencyId: FK
+    quantity
+}
+
+object BondOtherTransaction {
+    id: PK
+    type
+    date
+    confirmationDoc
+    value
+}
+
+object Bond {
+    id: PK
+    shortName
+    isin
+    secid
+    faceValue
+    currencyId: FK
+    issDate
+    matDate
+    offerDate
+    listName
+    secType
+    boardName
+    coupons[]
+    marketData[]
+}
+
+object MarketData {
+    id: PK
+    bondId: FK
+    date
+    price
+    closePrice
+    minPrice
+    maxPrice
+}
+
+object Coupon {
+    id: PK
+    bondId: FK
+    date
+    value
+}
+
+object Currency {
+    id: PK
+    name
+}
+
+object  Account {
+    id: PK
+    accHierarchyId: FK
+    journalEntries[]
+    Kt[]
+    Balance
+}
+
+' синтетический счет, субсчет, аналитический счет
+object AccHierarchy {
+    id: PK
+    level
+    number
+    name
+    type
+    accHierarchyId: FK
+}
+
+object JournalEntry {
+    date
+    amount
+    unit
+    description
+    debit
+    credit
+}
+
+BondTradeTransaction::bondId       }o..||  Bond::id
+BondTradeTransaction::accountId    }o..||  Account::id
+BondTradeTransaction::currencyId    }o..||  Currency::id
+Bond::currencyId }o..|| Currency::id
+Bond::coupons  ||..o{  Coupon::bondId
+Bond::marketData    ||..o{  MarketData::bondId
+Account::accHierarchyId |o..|| AccHierarchy::id
+AccHierarchy::accHierarchyId }o....o| AccHierarchy::id
+Account::journalEntries .. JournalEntry
+
+@enduml

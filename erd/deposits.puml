@@ -1,0 +1,41 @@
+@startuml depo_erd
+'https://plantuml.com/object-diagram
+'Opt+D to Preview
+
+<style>
+    document {
+        BackGroundColor Linen
+    }
+    root {
+        FontColor #?black:white
+        LineColor gray
+    }
+</style>
+
+title BANK_DEPOSITS_ERD
+
+object BankDeposit {
+    id: PK
+    bankName
+    clientName
+    duration
+    interestRate
+    interestPeriod
+    dateOpen
+    faceValue
+    description
+    status
+    futureJournalEntries[]
+}
+
+object JournalEntry {
+    id: PK
+    date
+    amount
+    units
+    debit
+    credit
+    description
+}
+
+@enduml
