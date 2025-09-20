@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "fapi"
+		},
+		{
+			"path": "vue"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

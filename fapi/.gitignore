@@ -1,0 +1,3 @@
+database/
+*.pyc
+**/__pycache__/
