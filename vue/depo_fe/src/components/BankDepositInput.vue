@@ -5,33 +5,21 @@
 
     const bankName = ref('')
     const clientName = ref('')
-    
-    
-    const  = computed({
-      get() { 
-        if (!dateOpen.value || !dateClose.value) {
-          return 0 // значение по умолчанию
-        }
-        const difMs = dateClose.value - dateOpen.value
-        const difDays = difMs / (1000 * 60 * 60 * 24)
-        return difDays
-      },
-      set(newValue) {
-        const d = new Date(dateOpen.value)
-        d.setDate(d.getDate() + newValue)
-        dateClose.value = d
-      }
-    })
+    const duration = ref(0)
     const interestRate = ref(0)
-    const interestPeriod = ref(0)
+    const interest_terms = ref(1)
     const { date: dateOpen, dateStr: dateOpenStr } = useDateField()
     const { date: dateClose, dateStr: dateCloseStr } = useDateField()
     const faceValue = ref(0)
     const description = ref('')
+    const isActive = ref(false)
 
-    watch(duration, (val) => {
-        interestPeriod.value = val
-    });
+    function toggle() {
+      isActive.value = !isActive.value
+      const d = new Date(dateOpen.value)
+      d.setDate(d.getDate() + duration.value)
+      dateClose.value = d
+    }
 </script>
 
 <template>
@@ -44,19 +32,23 @@
     <input type="number" v-model.number="duration" />
     <label>ставка %</label>
     <input type="number" v-model.number="interestRate" />
-    <label>период выплат %</label>
-    <input type="number" v-model.number="interestPeriod" />
+    <label for="interest_terms">порядок по %</label>
+    <select id="interest_terms" v-model="interest_terms" required>
+      <option value=1>в конце срока</option>
+      <option value=2>ежемесячно с капитализацией</option>
+      <option value=3>ежемесячно с выплатой</option>
+    </select>
     <label>дата открытия</label>
     <input type="date" v-model.date="dateOpenStr" />
     <label>сумма вклада</label>
     <input type="number" v-model.number="faceValue" />
     <label>описание</label>
     <input type="text" v-model="description" />
+    <div>дата закрытия </div>
+    <div>{{ dateCloseStr }}</div>
   </div>
-  <div>
-    <span>дата закрытия </span>
-    <span>{{ dateCloseStr ?? '—' }}</span>
-  </div>
+  <br>
+  <button @click="toggle">расчитать</button>
 </template>
 
 <style scoped>
@@ -81,19 +73,3 @@
   box-sizing: border-box;
 }
 </style>
-
-    <!-- const duration = computed({
-      get() { 
-        if (!dateOpen.value || !dateClose.value) {
-          return 0 // значение по умолчанию
-        }
-        const difMs = dateClose.value - dateOpen.value
-        const difDays = difMs / (1000 * 60 * 60 * 24)
-        return difDays
-      },
-      set(newValue) {
-        const d = new Date(dateOpen.value)
-        d.setDate(d.getDate() + newValue)
-        dateClose.value = d
-      }
-    }) -->
