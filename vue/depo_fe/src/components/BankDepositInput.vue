@@ -1,54 +1,99 @@
 <script setup>
-    import BankDepositService from '../services/BankDepositService.js';
-    import { useDateField } from '../composables/useDateField.js'
-    import { ref, computed, onMounted, watch } from 'vue';
+  import BankDepositService from '../services/BankDepositService.js';
+  import { ref, reactive, computed, onMounted, watch } from 'vue';
 
-    const bankName = ref('')
-    const clientName = ref('')
-    const duration = ref(0)
-    const interestRate = ref(0)
-    const interest_terms = ref(1)
-    const { date: dateOpen, dateStr: dateOpenStr } = useDateField()
-    const { date: dateClose, dateStr: dateCloseStr } = useDateField()
-    const faceValue = ref(0)
-    const description = ref('')
-    const isActive = ref(false)
+  
+  const form = reactive({
+    bankName: '',
+    clientName: '',
+    duration: 0,
+    interestRate: 0,
+    interestTerm: 1,
+    dateOpen: '',
+    faceValue: 0,
+    description: ''
+  })
+  
+  const isActive = ref(false)
 
-    function toggle() {
-      isActive.value = !isActive.value
-      const d = new Date(dateOpen.value)
-      d.setDate(d.getDate() + duration.value)
-      dateClose.value = d
+  function resetForm() {
+    Object.assign(form, {
+      bankName: '',
+      clientName: '',
+      duration: 0,
+      interestRate: 0,
+      interestTerm: 1,
+      dateOpen: '',
+      faceValue: 0,
+      description: ''
+    })
+  }
+
+  async function postDeposit() {
+    if (isActive.value) return
+    isActive.value = true
+
+
+    try {
+      const payload = {
+        bankName: form.bankName.trim(),
+        clientName: form.clientName.trim(),
+        duration: Number(form.duration) || 0,
+        interestRate: Number(form.interestRate) || 0,
+        dateOpen: form.dateOpen,
+        faceValue: Number(form.faceValue) || 0,
+        description: form.description.trim(),
+        interestTerm: Number(form.interestTerm) || 1,
+      }
+
+    if (!payload.bankName || !payload.clientName) {
+      throw new Error('Заполните название банка и имя клиента')
     }
+    if (!payload.dateOpen) {
+      throw new Error('Выберите дату открытия')
+    }
+
+    const { data } = await BankDepositService.create(payload)
+    console.log("ответ сервера:", data)
+    resetForm()
+
+  } catch (err) {
+    console.error(err)
+    alert(err?.response?.data ?? err.message ?? 'Ошибка сохранения')
+  } finally {
+    isActive.value = false
+  }
+}
 </script>
 
 <template>
   <div class="form">
     <label>название банка</label>
-    <input type="text" v-model="bankName" />
+    <input type="text" v-model="form.bankName" />
     <label>имя клиента</label>
-    <input type="text" v-model="clientName" />
+    <input type="text" v-model="form.clientName" />
     <label>срок дней</label>
-    <input type="number" v-model.number="duration" />
+    <input type="number" v-model.number="form.duration" />
     <label>ставка %</label>
-    <input type="number" v-model.number="interestRate" />
-    <label for="interest_terms">порядок по %</label>
-    <select id="interest_terms" v-model="interest_terms" required>
-      <option value=1>в конце срока</option>
-      <option value=2>ежемесячно с капитализацией</option>
-      <option value=3>ежемесячно с выплатой</option>
+    <input type="number" v-model.number="form.interestRate" />
+    <label>порядок по %</label>
+    <select v-model.number="form.interestTerm" required>
+      <option :value="1">в конце срока</option>
+      <option :value="2">ежемесячно с капитализацией</option>
+      <option :value="3">ежемесячно с выплатой</option>
     </select>
     <label>дата открытия</label>
-    <input type="date" v-model.date="dateOpenStr" />
+    <input type="date" v-model="form.dateOpen" />
     <label>сумма вклада</label>
-    <input type="number" v-model.number="faceValue" />
+    <input type="number" v-model.number="form.faceValue" />
     <label>описание</label>
-    <input type="text" v-model="description" />
-    <div>дата закрытия </div>
-    <div>{{ dateCloseStr }}</div>
+    <input type="text" v-model="form.description" />
   </div>
   <br>
-  <button @click="toggle">расчитать</button>
+  <button :disabled="isActive || !form.bankName || !form.clientName || !form.dateOpen" @click="postDeposit">
+  {{ isActive ? 'сохраняю...' : 'сохранить' }}
+  </button>
+  <dev> {{ form.dateOpen }}</dev>
 </template>
 
 <style scoped>

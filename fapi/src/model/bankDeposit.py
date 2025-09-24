@@ -1,5 +1,7 @@
 from sqlmodel import SQLModel, Field
+from typing import Optional
 from datetime import date
+
 
 
 class BankDepositBase( SQLModel ):
@@ -7,19 +9,28 @@ class BankDepositBase( SQLModel ):
     clientName: str
     duration: int
     interestRate: int
-    interestPeriod: int
     dateOpen: date
+    dateClose: Optional[date] = None
     faceValue: int
+    interestValue: Optional[int] = None
     description: str
-    status: bool
 
 
 class BankDeposit( BankDepositBase, table=True ):
     id: int = Field( default=None, primary_key=True )
 
 
-class BankDepositCreate( BankDepositBase ):
-    pass
+class BankDepositCreate( SQLModel ):
+    model_config = {"extra": "forbid"}
 
-class BankDepositPublic( BankDepositBase ):
-    id: int
+    bankName: str
+    clientName: str
+    duration: int
+    interestRate: int
+    interestTerm: int
+    dateOpen: date
+    faceValue: int
+    description: str
+
+class BankDepositPublic( BankDeposit ):
+    pass
