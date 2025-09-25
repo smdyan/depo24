@@ -54,7 +54,6 @@
     }
 
     const { data } = await BankDepositService.create(payload)
-    console.log("ответ сервера:", data)
     resetForm()
 
   } catch (err) {

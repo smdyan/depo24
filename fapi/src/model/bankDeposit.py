@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import date
 
 
-
 class BankDepositBase( SQLModel ):
     bankName: str
     clientName: str
@@ -27,10 +26,11 @@ class BankDepositCreate( SQLModel ):
     clientName: str
     duration: int
     interestRate: int
-    interestTerm: int
+    interestTerm: int       #не сохраняется в бд
     dateOpen: date
     faceValue: int
     description: str
 
 class BankDepositPublic( BankDeposit ):
+    # interestRateEffective: int        #с учетом капитализации
     pass

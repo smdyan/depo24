@@ -6,6 +6,10 @@ class BankDepositService{
         return axios.get( DEPOSIT_API_BASE_URL + id );
     }
 
+    getAllBankDeposit(){
+        return axios.get( DEPOSIT_API_BASE_URL );
+    }
+
     create(payload) {
     return axios.post(DEPOSIT_API_BASE_URL, payload, {
         headers: { 'Content-Type': 'application/json' }
