@@ -2,14 +2,15 @@
   import BankDepositService from '../services/BankDepositService.js';
   import { ref, reactive, computed, onMounted, watch } from 'vue';
 
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const form = reactive({
     bankName: '',
-    clientName: '',
-    duration: 0,
+    clientName: 'alfat',
+    duration: 365,
     interestRate: 0,
     interestTerm: 1,
-    dateOpen: '',
+    dateOpen: today,
     faceValue: 0,
     description: ''
   })
