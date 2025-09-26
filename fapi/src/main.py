@@ -2,8 +2,8 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes.router import get_router
-from src.data.init import create_db_and_tables
+from src.route.router import get_router
+from src.database import create_db_and_tables
 
 
 async def Lifespan(app: FastAPI):

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.routes import bond, coupon, quote, bankDeposit
+from src.route import bond, coupon, quote, bankDeposit
 
 
 def get_router():

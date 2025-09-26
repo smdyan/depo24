@@ -1,10 +1,10 @@
 from typing import Annotated
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
-from src.data.init import SessionDep
+from src.database import SessionDep
 from src.model.bankDeposit import BankDeposit, BankDepositCreate, BankDepositPublic
-from src.utils.calcDepositCloseDate import calcDepositCloseDate
-from src.utils.calcDepositIntValue import calcDepositIntValue
+from src.util.calc_date import add_days
+from src.service.finance import calc_income_value
 
 
 router = APIRouter( prefix="/deposit", tags=["deposit"])
@@ -13,13 +13,13 @@ router = APIRouter( prefix="/deposit", tags=["deposit"])
 @router.post( "/", response_model=BankDepositPublic )
 def addBankDeposit( payload: BankDepositCreate, session: SessionDep ):
     obj = BankDeposit(**payload.model_dump(exclude_none=True))
-    obj.dateClose = calcDepositCloseDate(obj.dateOpen, obj.duration)
-    obj.interestValue = calcDepositIntValue(obj.faceValue, obj.interestRate, obj.duration, payload.interestTerm)
+    obj.dateClose = add_days(obj.dateOpen, obj.duration)
+    obj.incomeValue = calc_income_value(obj.faceValue, obj.interestRate, obj.duration, payload.interestTerm)
     
     session.add( obj )
     session.commit()
     session.refresh( obj )
-    return obj              #после создания в бд возвращаем ответ клиенту
+    return obj              #возвращаем ответ клиенту
 
 
 @router.delete("/{id}")

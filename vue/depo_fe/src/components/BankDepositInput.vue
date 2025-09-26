@@ -92,7 +92,6 @@
   <button :disabled="isActive || !form.bankName || !form.clientName || !form.dateOpen" @click="postDeposit">
   {{ isActive ? 'сохраняю...' : 'сохранить' }}
   </button>
-  <dev> {{ form.dateOpen }}</dev>
 </template>
 
 <style scoped>

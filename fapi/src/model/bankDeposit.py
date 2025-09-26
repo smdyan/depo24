@@ -1,6 +1,8 @@
 from sqlmodel import SQLModel, Field
+from pydantic import computed_field
 from typing import Optional
 from datetime import date
+from src.service.finance import calc_gross_value, calc_effective_int_rate
 
 
 class BankDepositBase( SQLModel ):
@@ -11,7 +13,7 @@ class BankDepositBase( SQLModel ):
     dateOpen: date
     dateClose: Optional[date] = None
     faceValue: int
-    interestValue: Optional[int] = None
+    incomeValue: Optional[int] = None
     description: str
 
 
@@ -31,6 +33,13 @@ class BankDepositCreate( SQLModel ):
     faceValue: int
     description: str
 
-class BankDepositPublic( BankDeposit ):
-    # interestRateEffective: int        #с учетом капитализации
-    pass
+class BankDepositPublic( BankDepositBase ): #заменить входной параметр на базовый
+    id: int
+    
+    @computed_field(return_type=int)
+    def effectiveInterestRate(self) -> int:     #с учетом капитализации
+        return calc_effective_int_rate(self)
+
+    @computed_field(return_type=int)
+    def grossValue(self) -> int:
+        return calc_gross_value(self)

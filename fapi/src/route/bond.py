@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
-from src.data.init import SessionDep
+from src.database import SessionDep
 from src.model.bond import Bond, BondCreate, BondPublic
 
 

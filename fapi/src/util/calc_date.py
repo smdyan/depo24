@@ -1,4 +1,4 @@
 from datetime import date, timedelta
 
-def calcDepositCloseDate(d: date, days: int) -> date:
+def add_days(d: date, days: int) -> date:
     return d + timedelta(days=days)

@@ -54,11 +54,11 @@
         <tr v-for="d in deposits" :key="d.id">
           <td>{{ d.id }}</td>
           <td>{{ d.bankName }}</td>
-          <td>{{ d.interestRate }}</td>
+          <td>{{ d.effectiveInterestRate }}</td>
           <td>{{ d.duration }}</td>
           <td>{{ d.dateOpen }}</td>
           <td>{{ d.dateClose }}</td>
-          <td>{{ d.faceValue }}</td>
+          <td>{{ d.grossValue }}</td>
         </tr>
         <tr v-if="!loading && deposits.length === 0">
           <td colspan="7" style="text-align:center; color:#666">список пуст</td>
