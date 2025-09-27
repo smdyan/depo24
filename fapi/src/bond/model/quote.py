@@ -3,7 +3,7 @@ from typing import Optional, TYPE_CHECKING
 from datetime import date
 
 if TYPE_CHECKING:
-    from src.model.bond import Bond
+    from src.bond.model.bond import Bond
 
 class QuoteBase( SQLModel ):
     date: date

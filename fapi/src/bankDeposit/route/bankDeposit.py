@@ -2,9 +2,9 @@ from typing import Annotated
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
 from src.database import SessionDep
-from src.model.bankDeposit import BankDeposit, BankDepositCreate, BankDepositPublic
-from src.util.calc_date import add_days
-from src.service.finance import calc_income_value
+from src.bankDeposit.model.bankDeposit import BankDeposit, BankDepositCreate, BankDepositPublic
+from src.bankDeposit.util.calc_date import add_days
+from src.bankDeposit.service.finance import calc_income_value
 
 
 router = APIRouter( prefix="/deposit", tags=["deposit"])

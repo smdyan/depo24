@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field
 from pydantic import computed_field
 from typing import Optional
 from datetime import date
-from src.service.finance import calc_gross_value, calc_effective_int_rate
+from src.bankDeposit.service.finance import calc_gross_value, calc_effective_int_rate
 
 
 class BankDepositBase( SQLModel ):

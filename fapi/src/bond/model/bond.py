@@ -3,8 +3,8 @@ from typing import Optional, TYPE_CHECKING
 from datetime import date
 
 if TYPE_CHECKING:
-    from src.model.coupon import Coupon
-    from src.model.quote import Quote
+    from src.bond.model.coupon import Coupon
+    from src.bond.model.quote import Quote
 
 class BondBase( SQLModel ):
     shortName: str

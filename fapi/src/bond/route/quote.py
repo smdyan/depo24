@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
 from src.database import SessionDep
-from src.model.quote import Quote, QuoteCreate, QuotePublic
+from src.bond.model.quote import Quote, QuoteCreate, QuotePublic
 
 
 router = APIRouter( prefix="/quote" )

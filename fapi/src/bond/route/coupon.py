@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
 from src.database import SessionDep
-from src.model.coupon import Coupon, CouponCreate, CouponPublic
+from src.bond.model.coupon import Coupon, CouponCreate, CouponPublic
 
 
 router = APIRouter( prefix="/coupon" )
