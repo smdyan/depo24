@@ -3,8 +3,7 @@ from fastapi import HTTPException, APIRouter
 from sqlmodel import select
 from src.database import SessionDep
 from src.bankDeposit.model.bankDeposit import BankDeposit, BankDepositCreate, BankDepositPublic
-from src.bankDeposit.util.calc_date import add_days
-from src.bankDeposit.service.finance import calc_income_value
+from src.bankDeposit.service.finance import calc_close_date, calc_income_value
 
 
 router = APIRouter( prefix="/deposit", tags=["deposit"])
@@ -13,7 +12,7 @@ router = APIRouter( prefix="/deposit", tags=["deposit"])
 @router.post( "/", response_model=BankDepositPublic )
 def addBankDeposit( payload: BankDepositCreate, session: SessionDep ):
     obj = BankDeposit(**payload.model_dump(exclude_none=True))
-    obj.dateClose = add_days(obj.dateOpen, obj.duration)
+    obj.dateClose = calc_close_date(obj.dateOpen, obj.duration)
     obj.incomeValue = calc_income_value(obj.faceValue, obj.interestRate, obj.duration, payload.interestTerm)
     
     session.add( obj )

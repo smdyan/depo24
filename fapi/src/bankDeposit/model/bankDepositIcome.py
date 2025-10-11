@@ -5,8 +5,8 @@ from datetime import date
 from src.bankDeposit.service.finance import calc_gross_value, calc_effective_int_rate
 
 
-class BankDepositBase( SQLModel ):
-    bankName: str
+class IncomeBase( SQLModel ):
+    date: str
     clientName: str
     duration: int
     interestRate: int
