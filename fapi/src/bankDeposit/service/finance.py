@@ -3,15 +3,15 @@ from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext
 
 
-def calc_close_date(dateOpen: date, duration: int) -> date:
-    return dateOpen + timedelta(days=duration)
+def calc_close_date(date_open: date, duration: int) -> date:
+    return date_open + timedelta(days=duration)
 
 def calc_gross_value(obj) -> int:
-    return obj.faceValue + obj.incomeValue
+    return obj.face_value + obj.income_value
 
 
 def calc_effective_int_rate(obj) -> int:
-    n= obj.incomeValue/obj.faceValue*(365/obj.duration)*100
+    n= obj.income_value/obj.face_value*(365/obj.duration)*100
     return int(n)
 
 
@@ -27,32 +27,32 @@ def _to_dec(x) -> Decimal:
     return Decimal(str(x))
 
 def calc_income_value(
-    faceValue: int | float,
-    interestRate: int | float,
+    face_value: int | float,
+    interest_rate: int | float,
     duration: int,
-    interestTerm: InterestTerms,
+    interest_term: InterestTerms,
     day_count_base: int = 365,
 ) -> int:
     
-    if not faceValue or not interestRate or not duration:
+    if not face_value or not interest_rate or not duration:
         return 0
     
-    P = _to_dec(faceValue)
-    r = _to_dec(interestRate) / Decimal(100)          # годовая ставка, доля
+    P = _to_dec(face_value)
+    r = _to_dec(interest_rate) / Decimal(100)          # годовая ставка, доля
     days = Decimal(duration)
     D = Decimal(day_count_base)
 
-    if interestTerm == InterestTerms.END_OF_TERM:
+    if interest_term == InterestTerms.END_OF_TERM:
         # Простые проценты без капитализации: P * r * t/365
         inc = P * r * (days / D)
 
-    elif interestTerm == InterestTerms.MONTHLY_PAYOUT:
+    elif interest_term == InterestTerms.MONTHLY_PAYOUT:
         # Ежемесячно выплата процентов (без капитализации):
         months = (days // Decimal(30))            # целые месяцы, приближенно
         rem_days = days - months * Decimal(30)    # остаток дней
         inc = P * (r / Decimal(12)) * months + P * r * (rem_days / D)
 
-    elif interestTerm == InterestTerms.MONTHLY_COMPOUNDING:
+    elif interest_term == InterestTerms.MONTHLY_COMPOUNDING:
         # Ежемесячная капитализация:
         # Эффективный множитель ≈ (1 + r/12)^{months} * (1 + r/365)^{rem_days}
         # Доход = P * (factor - 1)
@@ -72,3 +72,4 @@ def calc_income_value(
 
     # Округление вниз до целого (как int в БД):
     return int(inc.to_integral_value(rounding=ROUND_FLOOR))
+
