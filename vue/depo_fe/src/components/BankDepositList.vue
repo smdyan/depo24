@@ -45,7 +45,6 @@
           <th>банк</th>
           <th>ставка* %</th>
           <th>срок (дн)</th>
-          <th>дата открытия</th>
           <th>дата закрытия</th>
           <th>сумма</th>
         </tr>
@@ -53,12 +52,11 @@
       <tbody>
         <tr v-for="d in deposits" :key="d.id">
           <td>{{ d.id }}</td>
-          <td>{{ d.bankName }}</td>
-          <td>{{ d.effectiveInterestRate }}</td>
+          <td>{{ d.bank_name }}</td>
+          <td>{{ d.effective_interest_rate }}</td>
           <td>{{ d.duration }}</td>
-          <td>{{ d.dateOpen }}</td>
-          <td>{{ d.dateClose }}</td>
-          <td>{{ d.grossValue }}</td>
+          <td>{{ d.date_close }}</td>
+          <td>{{ d.gross_value }}</td>
         </tr>
         <tr v-if="!loading && deposits.length === 0">
           <td colspan="7" style="text-align:center; color:#666">список пуст</td>

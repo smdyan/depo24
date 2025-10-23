@@ -8,3 +8,4 @@ alembic==1.15.*
 pydantic==2.11.*
 requests==2.32.*
 httpie==3.2.*
+python-dateutil

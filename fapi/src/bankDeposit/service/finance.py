@@ -1,10 +1,46 @@
 from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext
-
+from src.bankDeposit.model.income import Income
 
 def calc_close_date(date_open: date, duration: int) -> date:
     return date_open + timedelta(days=duration)
+
+
+def months_between(d1: date, d2: date) -> int:
+    """Возвращает количество полных календарных месяцев между двумя датами."""
+    # гарантируем, что d1 <= d2
+    if d1 > d2:
+        d1, d2 = d2, d1
+    
+    return (d2.year - d1.year) * 12 + (d2.month - d1.month)
+
+
+def iter_months(start: date, end: date):
+
+    n = date(start.year, start.month, 1)
+
+    looping = True
+    
+    while looping:
+        if(months_between(end, n) == 0):
+            n = end 
+            looping = False
+        else:
+            n += relativedelta(months=1)
+        
+        yield n
+
+
+def calc_total_income(
+        obj
+) -> int:
+    sum = 0
+    for income in obj.incomes:
+        sum += income.value
+    return sum
+
 
 def calc_gross_value(obj) -> int:
     return obj.face_value + obj.income_value
@@ -26,14 +62,17 @@ class InterestTerms(IntEnum):
 def _to_dec(x) -> Decimal:
     return Decimal(str(x))
 
-def calc_income_value(
+
+def calc_income_array( 
     face_value: int | float,
     interest_rate: int | float,
+    date_open: date,
+    date_close: date,
     duration: int,
     interest_term: InterestTerms,
-    day_count_base: int = 365,
-) -> int:
-    
+    day_count_base: int = 365,        
+) -> list[int]:
+
     if not face_value or not interest_rate or not duration:
         return 0
     
@@ -42,34 +81,33 @@ def calc_income_value(
     days = Decimal(duration)
     D = Decimal(day_count_base)
 
+    ret:list[Income] = []
+
     if interest_term == InterestTerms.END_OF_TERM:
         # Простые проценты без капитализации: P * r * t/365
-        inc = P * r * (days / D)
+        x1 = P * r * (days / D)
+        x2 = int(x1.to_integral_value(rounding=ROUND_FLOOR))
+        inc = Income(value=x2, date_payment=date_close)
+        ret.append(inc)
 
-    elif interest_term == InterestTerms.MONTHLY_PAYOUT:
-        # Ежемесячно выплата процентов (без капитализации):
-        months = (days // Decimal(30))            # целые месяцы, приближенно
-        rem_days = days - months * Decimal(30)    # остаток дней
-        inc = P * (r / Decimal(12)) * months + P * r * (rem_days / D)
+    if interest_term == InterestTerms.MONTHLY_COMPOUNDING:
+        prev = date_open
+        i=0
+        for next in iter_months(date_open, date_close):
+            delta = next - prev
+            days = Decimal(delta.days)
+            x1 = P * r * (days / D)
+            x2 = int(x1.to_integral_value(rounding=ROUND_FLOOR))
+            inc = Income(value=x2, date_payment=next)
+            ret.append(inc)
+            prev = next
+            P += x2
+            i+=1
+            print("777iteration: ", i)
 
-    elif interest_term == InterestTerms.MONTHLY_COMPOUNDING:
-        # Ежемесячная капитализация:
-        # Эффективный множитель ≈ (1 + r/12)^{months} * (1 + r/365)^{rem_days}
-        # Доход = P * (factor - 1)
-        months = (days // Decimal(30))
-        rem_days = days - months * Decimal(30)
-        month_rate = r / Decimal(12)
-        day_rate = r / D
+    print(ret)
+    return ret
 
-        factor_months = (Decimal(1) + month_rate) ** months
-        factor_days = (Decimal(1) + day_rate) ** rem_days
-        factor = factor_months * factor_days
-        inc = P * (factor - Decimal(1))
 
-    else:
-        # неизвестный режим — безопасно вернуть 0
-        inc = Decimal(0)
 
-    # Округление вниз до целого (как int в БД):
-    return int(inc.to_integral_value(rounding=ROUND_FLOOR))
 

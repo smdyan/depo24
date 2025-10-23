@@ -18,14 +18,20 @@ object BankDeposit {
     id: PK
     bankName
     clientName
-    duration
-    interestRate
-    interestPeriod
-    dateOpen
-    faceValue
     description
-    status
-    futureJournalEntries[]
+    duration
+    dateOpen
+    dateClose
+    faceValue
+    interestRate
+    incomes[]
+}
+
+object Income {
+    id: PK
+    depositId
+    value
+    datePayment
 }
 
 object JournalEntry {
@@ -37,5 +43,8 @@ object JournalEntry {
     credit
     description
 }
+
+BankDeposit::income - Income::id
+
 
 @enduml

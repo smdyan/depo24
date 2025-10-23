@@ -5,27 +5,27 @@
   const today = new Date().toISOString().split('T')[0]
 
   const form = reactive({
-    bankName: '',
-    clientName: 'alfat',
+    bank_name: 'sber',
+    client_name: 'alfat',
     duration: 365,
-    interestRate: 0,
-    interestTerm: 1,
-    dateOpen: today,
-    faceValue: 0,
-    description: ''
+    interest_rate: 10,
+    interest_term: 1,
+    date_open: today,
+    face_value: 1000,
+    description: 'na'
   })
   
   const isActive = ref(false)
 
   function resetForm() {
     Object.assign(form, {
-      bankName: '',
-      clientName: '',
+      bank_name: '',
+      client_name: '',
       duration: 0,
-      interestRate: 0,
-      interestTerm: 1,
-      dateOpen: '',
-      faceValue: 0,
+      interest_rate: 0,
+      interest_term: 1,
+      date_open: '',
+      face_value: 0,
       description: ''
     })
   }
@@ -37,20 +37,20 @@
 
     try {
       const payload = {
-        bankName: form.bankName.trim(),
-        clientName: form.clientName.trim(),
+        bank_name: form.bank_name.trim(),
+        client_name: form.client_name.trim(),
         duration: Number(form.duration) || 0,
-        interestRate: Number(form.interestRate) || 0,
-        dateOpen: form.dateOpen,
-        faceValue: Number(form.faceValue) || 0,
+        interest_rate: Number(form.interest_rate) || 0,
+        date_open: form.date_open,
+        face_value: Number(form.face_value) || 0,
         description: form.description.trim(),
-        interestTerm: Number(form.interestTerm) || 1,
+        interest_term: Number(form.interest_term) || 1,
       }
 
-    if (!payload.bankName || !payload.clientName) {
+    if (!payload.bank_name || !payload.client_name) {
       throw new Error('Заполните название банка и имя клиента')
     }
-    if (!payload.dateOpen) {
+    if (!payload.date_open) {
       throw new Error('Выберите дату открытия')
     }
 
@@ -69,28 +69,28 @@
 <template>
   <div class="form">
     <label>название банка</label>
-    <input type="text" v-model="form.bankName" />
+    <input type="text" v-model="form.bank_name" />
     <label>имя клиента</label>
-    <input type="text" v-model="form.clientName" />
+    <input type="text" v-model="form.client_name" />
     <label>срок дней</label>
     <input type="number" v-model.number="form.duration" />
     <label>ставка %</label>
-    <input type="number" v-model.number="form.interestRate" />
+    <input type="number" v-model.number="form.interest_rate" />
     <label>порядок по %</label>
-    <select v-model.number="form.interestTerm" required>
+    <select v-model.number="form.interest_term" required>
       <option :value="1">в конце срока</option>
       <option :value="2">ежемесячно с капитализацией</option>
       <option :value="3">ежемесячно с выплатой</option>
     </select>
     <label>дата открытия</label>
-    <input type="date" v-model="form.dateOpen" />
+    <input type="date" v-model="form.date_open" />
     <label>сумма вклада</label>
-    <input type="number" v-model.number="form.faceValue" />
+    <input type="number" v-model.number="form.face_value" />
     <label>описание</label>
     <input type="text" v-model="form.description" />
   </div>
   <br>
-  <button :disabled="isActive || !form.bankName || !form.clientName || !form.dateOpen" @click="postDeposit">
+  <button :disabled="isActive || !form.bank_name || !form.client_name || !form.date_open" @click="postDeposit">
   {{ isActive ? 'сохраняю...' : 'сохранить' }}
   </button>
 </template>

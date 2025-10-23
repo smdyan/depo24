@@ -1,13 +1,13 @@
 <script setup>
 import BankDepositList from './BankDepositList.vue'
-import BankDepositInput from './BankDepositInput.vue'
+import Input from './BankDepositInput.vue'
 import { ref } from 'vue'
  
 const currentTab = ref('BankDepositList')
 
 const tabs = {
   BankDepositList: BankDepositList,
-  BankDepositInput,
+  Input,
 }
 </script>
 

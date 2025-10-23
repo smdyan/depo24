@@ -1,7 +1,7 @@
 <script setup>
   import Title from './components/Title.vue'
   import BondItem from './components/BondItem.vue'
-  import Demo from './components/Demo.vue'
+  import Demo from './components/BankDeposit.vue'
 </script>
 
 <template>
