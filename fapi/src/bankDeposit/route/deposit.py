@@ -1,10 +1,9 @@
 from fastapi import HTTPException, APIRouter
 from sqlmodel import select
 from src.database import SessionDep
-from src.bankDeposit.model.deposit import Deposit, DepositCreate, DepositPublic, DepositPublicWithIncome
-from src.bankDeposit.service.finance import calc_close_date, calc_income_array
-from src.bankDeposit.model.income import Income
-from datetime import date, timedelta
+from src.bankDeposit.model.deposit import Deposit, DepositCreate, DepositPublicWithIncome
+from src.bankDeposit.service.deposit_parameters import calc_close_date
+from src.bankDeposit.service.income import calc_income_array
 
 
 router = APIRouter(prefix="/deposits", tags=["deposits"])

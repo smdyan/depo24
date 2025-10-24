@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
 
@@ -8,7 +9,10 @@ if TYPE_CHECKING:
 
 
 class IncomeBase(SQLModel):                                                   #parent data model
-    value: int
+    value: Decimal = Field(
+        max_digits=12,
+        decimal_places=2,
+    )
     date_payment: date
     deposit_id: int | None = Field(default=None, foreign_key="deposit.id")    #"deposit" is the default name of the table in the database
 

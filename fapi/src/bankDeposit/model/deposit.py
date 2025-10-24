@@ -1,10 +1,9 @@
 from sqlmodel import SQLModel, Field, Relationship
 from pydantic import computed_field, Field as PydanticField
+from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from src.bankDeposit.service.finance import calc_gross_value, calc_effective_int_rate
-from src.bankDeposit.service.finance import calc_total_income
-from pydantic import ConfigDict
+from src.bankDeposit.service.deposit_parameters import calc_gross_value, calc_effective_int_rate, calc_total_income
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.income import Income
@@ -23,8 +22,14 @@ class DepositBase(SQLModel):
     duration: int
     date_open: date
     date_close: Optional[date] = None
-    face_value: int
-    interest_rate: int
+    face_value: Decimal = Field(
+        max_digits=12,
+        decimal_places=2,
+    )
+    interest_rate: Decimal = Field(
+        max_digits=5,
+        decimal_places=2,
+    )
 
 
 class Deposit(DepositBase, table=True):
@@ -50,9 +55,9 @@ class DepositPublicWithIncome(DepositPublic):
         return calc_total_income(self)
 
     @computed_field(return_type=int)
-    def gross_value(self) -> int:
+    def gross_value(self) -> Decimal:
         return calc_gross_value(self)
     
     @computed_field(return_type=int)
-    def effective_interest_rate(self) -> int:     #с учетом капитализации
+    def effective_interest_rate(self) -> Decimal:     #с учетом капитализации
         return calc_effective_int_rate(self)
