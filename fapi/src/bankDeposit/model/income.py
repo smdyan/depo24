@@ -14,6 +14,7 @@ class IncomeBase(SQLModel):                                                   #p
         decimal_places=2,
     )
     date_payment: date
+    period: int
     deposit_id: int | None = Field(default=None, foreign_key="deposit.id")    #"deposit" is the default name of the table in the database
 
 

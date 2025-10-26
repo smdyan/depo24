@@ -38,7 +38,7 @@ def calc_income_array(
     if interest_term == InterestTerms.END_OF_TERM:
         # Простые проценты без капитализации: P * r * t/365
         x = to_dec(P * r * (days / D))
-        inc = Income(value=x, date_payment=date_close)
+        inc = Income(value=x, date_payment=date_close, period=int(days))
         ret.append(inc)
 
     if interest_term == InterestTerms.MONTHLY_COMPOUNDING:
@@ -47,7 +47,7 @@ def calc_income_array(
             delta = next - prev
             days = Decimal(delta.days)
             x = to_dec(P * r * (days / D))
-            inc = Income(value=x, date_payment=next)
+            inc = Income(value=x, date_payment=next, period=int(days))
             ret.append(inc)
             prev = next
             P += x
@@ -58,7 +58,7 @@ def calc_income_array(
             delta = next - prev
             days = Decimal(delta.days)
             x = to_dec(P * r * (days / D))
-            inc = Income(value=x, date_payment=next)
+            inc = Income(value=x, date_payment=next, period=int(days))
             ret.append(inc)
             prev = next
     

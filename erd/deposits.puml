@@ -16,22 +16,23 @@ title BANK_DEPOSITS_ERD
 
 object BankDeposit {
     id: PK
-    bankName
-    clientName
-    description
-    duration
-    dateOpen
-    dateClose
-    faceValue
-    interestRate
+    bank_name: str
+    client_name: str
+    description: str
+    duration: int
+    date_open: date
+    date_close: date
+    face_value: Decimal
+    interest_rate
     incomes[]
 }
 
 object Income {
     id: PK
-    depositId
     value
-    datePayment
+    period
+    date_payment
+    deposit_id: FK
 }
 
 object JournalEntry {
