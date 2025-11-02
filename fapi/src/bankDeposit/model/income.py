@@ -1,3 +1,4 @@
+from enum import Enum
 from sqlmodel import SQLModel, Field, Relationship
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
@@ -7,6 +8,13 @@ if TYPE_CHECKING:
     from src.bankDeposit.model.deposit import Deposit
     from src.bankDeposit.model.deposit import DepositPublic
 
+class IncomeStatus(Enum):
+    PENDING = "pending"
+    PAID = "paid"
+
+    @property
+    def is_pending(self) -> bool:
+        return self is IncomeStatus.PENDING
 
 class IncomeBase(SQLModel):                                                   #parent data model
     value: Decimal = Field(
@@ -15,6 +23,7 @@ class IncomeBase(SQLModel):                                                   #p
     )
     date_payment: date
     period: int
+    status: IncomeStatus #изменение статуса сопроводить проводкой
     deposit_id: int | None = Field(default=None, foreign_key="deposit.id")    #"deposit" is the default name of the table in the database
 
 

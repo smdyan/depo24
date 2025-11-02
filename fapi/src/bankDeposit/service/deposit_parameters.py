@@ -25,7 +25,7 @@ def calc_gross_value(obj) -> Decimal:
     return ret #при сложении мантисса не увеличится
 
 
-def calc_effective_int_rate(obj) -> Decimal:
+def calc_effective_interest_rate(obj) -> Decimal:
     i = to_dec(obj.income_value)
     f = to_dec(obj.face_value)
     days = Decimal(obj.duration)

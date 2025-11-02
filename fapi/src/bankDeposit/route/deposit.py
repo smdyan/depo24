@@ -15,7 +15,7 @@ def addDeposit(payload: DepositCreate, session: SessionDep):
     
     obj.date_close = calc_close_date(obj.date_open, obj.duration)
     
-    incomes = calc_income_array(obj.face_value, obj.interest_rate, obj.date_open, obj.date_close, obj.duration, payload.interest_term)
+    incomes = calc_income_array(obj)
     for income in incomes:
         obj.incomes.append(income)
     

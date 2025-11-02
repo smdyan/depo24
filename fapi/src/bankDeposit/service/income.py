@@ -3,42 +3,38 @@ from dateutil.relativedelta import relativedelta
 from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext
 from src.bankDeposit.model.income import Income
+from src.bankDeposit.model.deposit import InterestTerms
+from src.bankDeposit.model.income import IncomeStatus
+from src.bankDeposit.model.deposit import Deposit
 from src.bankDeposit.service.utils import to_dec
 
 
-class InterestTerms(IntEnum):
-    END_OF_TERM = 1               # в конце срока (простые проценты, без капитализации)
-    MONTHLY_COMPOUNDING = 2       # ежемесячно с капитализацией
-    MONTHLY_PAYOUT = 3            # ежемесячно с выплатой (без капитализации)
-
-
-def calc_income_array( 
-    face_value: int | float,
-    interest_rate: int | float,
-    date_open: date,
-    date_close: date,
-    duration: int,
-    interest_term: InterestTerms,
+def calc_income_array(
+    deposit: Deposit,
     day_count_base: int = 365,        
 ) -> list[Income]:
-
-    if not face_value or not interest_rate or not duration:
-        return []
     
     # Больше точности при промежуточных расчётах
     getcontext().prec = 28
     
-    P = to_dec(face_value)
-    r = to_dec(interest_rate) / Decimal(100)          # годовая ставка, доля
-    days = Decimal(duration)
+    date_open = deposit.date_open
+    date_close = deposit.date_close
+    interest_term = deposit.interest_term
+    
+    P = to_dec(deposit.face_value)
+    r = to_dec(deposit.nominal_rate) / Decimal(100)          # годовая ставка, доля
+    days = Decimal(deposit.duration)
     D = Decimal(day_count_base)
 
     ret:list[Income] = []
 
+    if not deposit.face_value or not deposit.nominal_rate or not deposit.duration:
+        return []
+
     if interest_term == InterestTerms.END_OF_TERM:
         # Простые проценты без капитализации: P * r * t/365
         x = to_dec(P * r * (days / D))
-        inc = Income(value=x, date_payment=date_close, period=int(days))
+        inc = Income(value=x, date_payment=date_close, period=int(days), status=IncomeStatus.PENDING)
         ret.append(inc)
 
     if interest_term == InterestTerms.MONTHLY_COMPOUNDING:
@@ -47,7 +43,7 @@ def calc_income_array(
             delta = next - prev
             days = Decimal(delta.days)
             x = to_dec(P * r * (days / D))
-            inc = Income(value=x, date_payment=next, period=int(days))
+            inc = Income(value=x, date_payment=next, period=int(days), status=IncomeStatus.PENDING)
             ret.append(inc)
             prev = next
             P += x
@@ -58,7 +54,7 @@ def calc_income_array(
             delta = next - prev
             days = Decimal(delta.days)
             x = to_dec(P * r * (days / D))
-            inc = Income(value=x, date_payment=next, period=int(days))
+            inc = Income(value=x, date_payment=next, period=int(days), status=IncomeStatus.PENDING)
             ret.append(inc)
             prev = next
     
