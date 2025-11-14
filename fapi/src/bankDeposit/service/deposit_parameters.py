@@ -1,35 +1,60 @@
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
-from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext, ROUND_HALF_UP, InvalidOperation
-from src.bankDeposit.model.income import Income
+from src.bankDeposit.model.income import Income, IncomeStatus
+from src.bankDeposit.model.deposit_parameters import InterestTerms
 from src.bankDeposit.service.utils import to_dec
 
 
 def calc_close_date(date_open: date, duration: int) -> date:
     return date_open + timedelta(days=duration)
 
+def _calc_begin_date(date_payment: date, duration: int) -> date:
+    return date_payment - timedelta(days=duration)
 
-def calc_total_income(obj) -> Decimal:
+
+def calc_interest_accured(obj) -> Decimal:
     sum = 0
+    today = date.today()
     for income in obj.incomes:
-        i = to_dec(income.value)
-        sum += i
-    return sum
+        date_begin = _calc_begin_date(income.date_payment, income.period)
+        date_end = income.date_payment
+        if(today >= date_begin and today <= date_end):
+            days = (today - date_begin).days
+            sum = income.value*days/income.period
+
+    return to_dec(sum)
+    
+
+def calc_interest_paid(obj) -> Decimal:
+    sum = 0
+
+    for income in obj.incomes:
+        if (income.status == IncomeStatus.PAID):
+            sum += income.value
+
+    return to_dec(sum)
 
 
-def calc_gross_value(obj) -> Decimal:
-    i = to_dec(obj.income_value)
-    f = to_dec(obj.face_value)
-    ret = f+i
-    return ret #при сложении мантисса не увеличится
+def calc_interest_pending(obj) -> Decimal:
+    sum = 0
+
+    for income in obj.incomes:
+        if (income.status == IncomeStatus.PENDING):
+            sum += income.value
+
+    return to_dec(sum)
 
 
-def calc_effective_interest_rate(obj) -> Decimal:
-    i = to_dec(obj.income_value)
-    f = to_dec(obj.face_value)
-    days = Decimal(obj.duration)
-    n= i/f*(365/days)*100
-    return to_dec(n)
+def calc_effective_annual_rate(obj) -> Decimal:
+    days = obj.duration
+    if(obj.interest_term == InterestTerms.END_OF_TERM):
+        m = to_dec(365/days)        # выплат в год
+    else:
+        m = 12
+    
+    r = obj.nominal_rate / 100      # номинальная ставка
 
-
+    EAR = pow(1+r/m, m) - 1         # эффективная ставка
+    
+    return to_dec(EAR*100)

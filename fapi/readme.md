@@ -1,3 +1,4 @@
-*** FAPI
-**** fapi % uvicorn src.main:app --reload
+## FAPI
+
+fapi % uvicorn src.main:app --reload
 

@@ -37,7 +37,7 @@ def calc_income_array(
         inc = Income(value=x, date_payment=date_close, period=int(days), status=IncomeStatus.PENDING)
         ret.append(inc)
 
-    if interest_term == InterestTerms.MONTHLY_COMPOUNDING:
+    if interest_term == InterestTerms.MONTHLY_COMPOUND:
         prev = date_open
         for next in _iter_months(date_open, date_close):
             delta = next - prev
@@ -73,7 +73,6 @@ def _iter_months(start: date, end: date):
     n = date(start.year, start.month, 1)
 
     looping = True
-    
     while looping:
         if(_months_between(end, n) == 0):
             n = end 

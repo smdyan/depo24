@@ -1,10 +1,16 @@
-from enum import Enum, IntEnum
+from enum import Enum
 from sqlmodel import SQLModel, Field, Relationship
 from pydantic import computed_field, Field as PydanticField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from src.bankDeposit.service.deposit_parameters import calc_gross_value, calc_effective_interest_rate, calc_total_income
+from src.bankDeposit.service.deposit_parameters import (
+    calc_effective_annual_rate,
+    calc_interest_accured,
+    calc_interest_paid,
+    calc_interest_pending,
+)
+from src.bankDeposit.model.deposit_parameters import InterestTerms, DepositStatus
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.income import Income
@@ -16,22 +22,9 @@ else:
     IncomePublic = _income.IncomePublic
 
 
-class InterestTerms(IntEnum):
-    END_OF_TERM = 1               # в конце срока (простые проценты, без капитализации)
-    MONTHLY_COMPOUNDING = 2       # ежемесячно с капитализацией
-    MONTHLY_PAYOUT = 3            # ежемесячно с выплатой (без капитализации)
-
-class DepositStatus(Enum):
-    ACTIVE = "active"
-    CLOSE = "close"
-
-    @property
-    def is_active(self) -> bool:
-        return self is DepositStatus.ACTIVE
-
 class DepositBase(SQLModel):
-    bank_name: str
-    client_name: str
+    bank_name: str          #сейчас произвольное название, переделать на значение из БД
+    client_name: str        #тоже
     description: str
     duration: int
     date_open: date
@@ -45,7 +38,7 @@ class DepositBase(SQLModel):
         decimal_places=2,
     )
     interest_term: InterestTerms
-    status: DepositStatus = Field(default="active") #изменение статуса сопровождать проводкой
+    status: DepositStatus = Field(default="active")                                 #изменение статуса сопровождать проводкой
 
 
 class Deposit(DepositBase, table=True):
@@ -61,23 +54,21 @@ class DepositPublic(DepositBase):
     id: int
 
     @computed_field(return_type=int)
-    def interest_accured(self) -> int:
-        return 1
+    def interest_accured(self) -> int:          #начислено
+        return calc_interest_accured(self)
 
     @computed_field(return_type=int)
-    def interest_capitalized(self) -> int:
-        return 2
-
-    @computed_field(return_type=int)
-    def nterest_paid(self) -> int:
-        return 3
+    def interest_paid(self) -> int:                #выплачено
+        return calc_interest_paid(self)
     
     @computed_field(return_type=int)
-    def effective_rate(self) -> Decimal:     #с учетом капитализации
-        # return calc_effective_interest_rate(self)
-        return 4
+    def interest_pending(self) -> int:                #планируемые
+        return calc_interest_pending(self)
+    
+    @computed_field(return_type=int)
+    def effective_rate(self) -> Decimal:            #EAR
+        return calc_effective_annual_rate(self)
 
 
 class DepositPublicWithIncome(DepositPublic):
     incomes: list["IncomePublic"] = PydanticField(default_factory=list)
-

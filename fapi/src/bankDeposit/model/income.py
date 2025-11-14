@@ -37,5 +37,5 @@ class IncomePublic(IncomeBase):                                               #d
 class IncomeCreate(IncomeBase):
     pass
 
-class IncomePublicWithDeposit(IncomePublic):
-    deposit: Optional["DepositPublic"] = Field(default=None)
+# class IncomePublicWithDeposit(IncomePublic):                                  #зачем он нужен?
+#     deposit: Optional["DepositPublic"] = Field(default=None)
