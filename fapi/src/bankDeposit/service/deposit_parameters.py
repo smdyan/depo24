@@ -19,7 +19,11 @@ def calc_interest_accured(obj) -> Decimal:
     for income in obj.incomes:
         date_begin = _calc_begin_date(income.date_payment, income.period)
         date_end = income.date_payment
-        if(today >= date_begin and today <= date_end):
+        
+        if(income.status == IncomeStatus.PENDING and today > date_end):
+            sum += income.value
+
+        elif(income.status == IncomeStatus.PENDING and today <= date_end):
             days = (today - date_begin).days
             sum = income.value*days/income.period
 
@@ -36,12 +40,11 @@ def calc_interest_paid(obj) -> Decimal:
     return to_dec(sum)
 
 
-def calc_interest_pending(obj) -> Decimal:
+def calc_interest_total(obj) -> Decimal:
     sum = 0
 
     for income in obj.incomes:
-        if (income.status == IncomeStatus.PENDING):
-            sum += income.value
+        sum += income.value
 
     return to_dec(sum)
 

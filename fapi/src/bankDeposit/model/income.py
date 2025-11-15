@@ -3,18 +3,12 @@ from sqlmodel import SQLModel, Field, Relationship
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
+from src.bankDeposit.model.deposit_parameters import IncomeStatus
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.deposit import Deposit
     from src.bankDeposit.model.deposit import DepositPublic
 
-class IncomeStatus(Enum):
-    PENDING = "pending"
-    PAID = "paid"
-
-    @property
-    def is_pending(self) -> bool:
-        return self is IncomeStatus.PENDING
 
 class IncomeBase(SQLModel):                                                   #parent data model
     value: Decimal = Field(

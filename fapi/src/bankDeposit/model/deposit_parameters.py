@@ -14,3 +14,12 @@ class DepositStatus(Enum):
     @property
     def is_active(self) -> bool:
         return self is DepositStatus.ACTIVE
+    
+
+class IncomeStatus(Enum):
+    PENDING = "pending"
+    PAID = "paid"
+
+    @property
+    def is_pending(self) -> bool:
+        return self is IncomeStatus.PENDING

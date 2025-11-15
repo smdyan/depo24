@@ -5,10 +5,10 @@ from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
 from src.bankDeposit.service.deposit_parameters import (
-    calc_effective_annual_rate,
     calc_interest_accured,
     calc_interest_paid,
-    calc_interest_pending,
+    calc_interest_total,
+    calc_effective_annual_rate,
 )
 from src.bankDeposit.model.deposit_parameters import InterestTerms, DepositStatus
 
@@ -23,13 +23,18 @@ else:
 
 
 class DepositBase(SQLModel):
-    bank_name: str          #сейчас произвольное название, переделать на значение из БД
+    bank_name: str          #сейчас произвольное название, переделать на значение из БД "customer_id"
     client_name: str        #тоже
     description: str
     duration: int
     date_open: date
     date_close: Optional[date] = None
-    face_value: Decimal = Field(
+    currency: str
+    principal_value: Decimal = Field(
+        max_digits=12,
+        decimal_places=2,
+    )
+    topup_value: Decimal = Field(
         max_digits=12,
         decimal_places=2,
     )
@@ -62,8 +67,8 @@ class DepositPublic(DepositBase):
         return calc_interest_paid(self)
     
     @computed_field(return_type=int)
-    def interest_pending(self) -> int:                #планируемые
-        return calc_interest_pending(self)
+    def interest_total(self) -> int:                #общая сумма процентов по вкладу
+        return calc_interest_total(self)
     
     @computed_field(return_type=int)
     def effective_rate(self) -> Decimal:            #EAR

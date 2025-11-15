@@ -21,14 +21,14 @@ def calc_income_array(
     date_close = deposit.date_close
     interest_term = deposit.interest_term
     
-    P = to_dec(deposit.face_value)
+    P = to_dec(deposit.principal_value)
     r = to_dec(deposit.nominal_rate) / Decimal(100)          # годовая ставка, доля
     days = Decimal(deposit.duration)
     D = Decimal(day_count_base)
 
     ret:list[Income] = []
 
-    if not deposit.face_value or not deposit.nominal_rate or not deposit.duration:
+    if not deposit.principal_value or not deposit.nominal_rate or not deposit.duration:
         return []
 
     if interest_term == InterestTerms.END_OF_TERM:
