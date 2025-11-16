@@ -61,7 +61,7 @@ class DepositPublic(DepositBase):
     def customer_name(self) -> str | None:
         if self.customer is None:
             return None
-        return f"{self.customer.last_name} {self.customer.first_name}"
+        return f"{self.customer.second_name} {self.customer.first_name}"
 
     @computed_field(return_type=Decimal)
     def interest_accrued(self) -> Decimal:          #начислено
