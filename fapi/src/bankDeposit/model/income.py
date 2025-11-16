@@ -1,4 +1,5 @@
 from enum import Enum
+from sqlalchemy import Column, Numeric
 from sqlmodel import SQLModel, Relationship, Field as SQLField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
@@ -7,14 +8,10 @@ from src.bankDeposit.model.deposit_parameters import IncomeStatus
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.deposit import Deposit
-    # from src.bankDeposit.model.deposit import DepositPublic
 
 
 class IncomeBase(SQLModel):                                                   #parent data model
-    value: Decimal = SQLField(
-        max_digits=12,
-        decimal_places=2,
-    )
+    value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
     date_payment: date
     period: int
     status: IncomeStatus #изменение статуса сопроводить проводкой
@@ -31,5 +28,3 @@ class IncomePublic(IncomeBase):                                               #d
 class IncomeCreate(IncomeBase):
     pass
 
-# class IncomePublicWithDeposit(IncomePublic):                                  #зачем он нужен?
-#     deposit: Optional["DepositPublic"] = Field(default=None)

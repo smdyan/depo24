@@ -22,8 +22,11 @@ object BankDeposit {
     duration: int
     date_open: date
     date_close: date
-    face_value: Decimal
-    interest_rate
+    principal_value: Decimal
+    topup_value: Decimal
+    nominal_rate: Decimal
+    interest_term: enum
+    status: enum
     incomes[]
 }
 
@@ -38,14 +41,59 @@ object Income {
 object JournalEntry {
     id: PK
     date
-    amount
-    units
-    debit
-    credit
     description
+    document_id
+    entryLines[]
+}
+
+object EntryLine {
+    id
+    entry_id
+    debit_acc_id
+    credit_acc_id
+    amount
+}
+
+object  Account {
+    id: PK
+    accHierarchyId: FK
+    journalEntries[]
+    Kt[]
+    Balance
+}
+
+object AccHierarchy {
+    id: PK
+    level
+    number
+    name
+    type
+    accHierarchyId: FK
+}
+
+object Customer {
+    id
+    first_name
+    second_name
+    middle_name
+}
+
+object Bank {
+    id
+    short_name
+    full_name
+    address
+    phone
+    status
+}
+
+object Currency {
+    id: PK
+    short_name
+    full_name
+    country
 }
 
 BankDeposit::income - Income::id
-
 
 @enduml

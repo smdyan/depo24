@@ -13,7 +13,7 @@ def _calc_begin_date(date_payment: date, duration: int) -> date:
     return date_payment - timedelta(days=duration)
 
 
-def calc_interest_accured(obj) -> Decimal:
+def calc_interest_accrued(obj) -> Decimal:
     sum = 0
     today = date.today()
     for income in obj.incomes:

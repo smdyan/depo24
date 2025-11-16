@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from src.bankDeposit.model.deposit import Deposit
     from src.bankDeposit.model.deposit import DepositPublic
 
-class CustomerBase(SQLModel): #заменить на пайдантик бэйсмодел
+class CustomerBase(SQLModel):
     first_name: str
     second_name: str
     middle_name: str
@@ -15,7 +15,7 @@ class CustomerBase(SQLModel): #заменить на пайдантик бэйс
 
 class Customer(CustomerBase, table=True):
     id: int = SQLField(default=None, primary_key=True)
-    deposits: Optional[list["Deposit"]] = Relationship( back_populates="customer" )
+    deposits: Optional[list["Deposit"]] = Relationship(back_populates="customer")
 
 
 class CustomerPublic(CustomerBase):
