@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Relationship, Field as SQLField
 from pydantic import computed_field, Field as PydanticField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
@@ -11,44 +11,49 @@ from src.bankDeposit.service.deposit_parameters import (
     calc_effective_annual_rate,
 )
 from src.bankDeposit.model.deposit_parameters import InterestTerms, DepositStatus
+from src.general.model.customer import Customer
 
 if TYPE_CHECKING:
-    from src.bankDeposit.model.income import Income
-    from src.bankDeposit.model.income import IncomePublic
+    from src.bankDeposit.model.income import Income, IncomePublic
+    from src.general.model.customer import Customer, CustomerPublic
 else:
     from src.bankDeposit.model import income as _income                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
-
     Income = _income.Income
     IncomePublic = _income.IncomePublic
 
+    from src.general.model import customer as _customer
+    Customer = _customer.Customer
+    CustomerPublic = _customer.CustomerPublic
+
 
 class DepositBase(SQLModel):
-    bank_name: str          #сейчас произвольное название, переделать на значение из БД "customer_id"
-    client_name: str        #тоже
+    bank_name: str          #сейчас произвольное название, переделать на значение из БД
+    customer_id: int | None = SQLField(default=None, foreign_key="customer.id")
     description: str
     duration: int
     date_open: date
     date_close: Optional[date] = None
     currency: str
-    principal_value: Decimal = Field(
+    principal_value: Decimal = SQLField(
         max_digits=12,
         decimal_places=2,
     )
-    topup_value: Decimal = Field(
+    topup_value: Decimal = SQLField(
         max_digits=12,
         decimal_places=2,
     )
-    nominal_rate: Decimal = Field(
+    nominal_rate: Decimal = SQLField(
         max_digits=5,
         decimal_places=2,
     )
     interest_term: InterestTerms
-    status: DepositStatus = Field(default="active")                                 #изменение статуса сопровождать проводкой
+    status: DepositStatus = SQLField(default="active")                                 #изменение статуса сопровождать проводкой
 
 
 class Deposit(DepositBase, table=True):
-    id: int = Field( default=None, primary_key=True )
+    id: int = SQLField( default=None, primary_key=True )
     incomes: Optional[list["Income"]] = Relationship( back_populates="deposit" )    # "deposit" is a name of the attribute in the other model class "Income"
+    customer: Optional["Customer"] = Relationship( back_populates="deposits" )    # "deposits" is a name of the attribute in the other model class "Cestomer"
 
 
 class DepositCreate(DepositBase):
@@ -57,6 +62,7 @@ class DepositCreate(DepositBase):
 
 class DepositPublic(DepositBase):
     id: int
+    customer: Optional["CustomerPublic"] = PydanticField(default=None)
 
     @computed_field(return_type=int)
     def interest_accured(self) -> int:          #начислено
