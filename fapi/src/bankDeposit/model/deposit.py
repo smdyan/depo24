@@ -12,11 +12,11 @@ from src.bankDeposit.service.deposit_parameters import (
     calc_effective_annual_rate,
 )
 from src.bankDeposit.model.deposit_parameters import InterestTerms, DepositStatus
-from src.misc.model.customer import Customer
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.income import Income, IncomePublic
     from src.misc.model.customer import Customer, CustomerPublic
+    from src.misc.model.currency import Currency, CurrencyPublic
 else:
     from src.bankDeposit.model import income as _income                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
     Income = _income.Income
@@ -26,6 +26,10 @@ else:
     Customer = _customer.Customer
     CustomerPublic = _customer.CustomerPublic
 
+    from src.misc.model import currency as _currency
+    Currency = _currency.Currency
+    CurrencyPublic = _currency.CurrencyPublic
+
 
 class DepositBase(SQLModel):
     bank_name: str          #сейчас произвольное название, переделать на значение из БД
@@ -34,7 +38,7 @@ class DepositBase(SQLModel):
     duration: int
     date_open: date
     date_close: date | None = SQLField(default=None, nullable=True)
-    currency: str
+    currency_id: int | None = SQLField(default=None, foreign_key="currency.id")
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
     topup_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
     nominal_rate: Decimal = SQLField(sa_column=Column(Numeric(5, 2)))
@@ -46,6 +50,7 @@ class Deposit(DepositBase, table=True):
     id: int = SQLField( default=None, primary_key=True )
     incomes: list["Income"] = Relationship(back_populates="deposit")                # "deposit" is a name of the attribute in the other model class "Income"
     customer: Optional["Customer"] = Relationship(back_populates="deposits")           # "deposits" is a name of the attribute in the other model class "Customer"
+    currency: Optional["Currency"] = Relationship(back_populates="deposits")
 
 
 class DepositCreate(DepositBase):
@@ -54,6 +59,7 @@ class DepositCreate(DepositBase):
 
 class DepositPublic(DepositBase):
     id: int
+   
     customer: Optional["CustomerPublic"] = PydanticField(default=None, exclude=True)
     customer_id: int | None = PydanticField(exclude=True)
 
@@ -62,6 +68,16 @@ class DepositPublic(DepositBase):
         if self.customer is None:
             return None
         return f"{self.customer.second_name} {self.customer.first_name}"
+    
+    currency: Optional["CurrencyPublic"] = PydanticField(default=None, exclude=True)
+    currency_id: int | None = PydanticField(exclude=True)
+
+    @computed_field(return_type=str | None)
+    def currency_name(self) -> str | None:
+        if self.currency is None:
+            return None
+        return f"{self.currency.short_name}"
+    
 
     @computed_field(return_type=Decimal)
     def interest_accrued(self) -> Decimal:          #начислено
