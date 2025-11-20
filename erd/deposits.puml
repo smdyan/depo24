@@ -83,7 +83,6 @@ object Bank {
     short_name
     full_name
     address
-    phone
     status
 }
 

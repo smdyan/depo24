@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from src.bankDeposit.model.income import Income, IncomePublic
     from src.misc.model.customer import Customer, CustomerPublic
     from src.misc.model.currency import Currency, CurrencyPublic
+    from src.misc.model.bank import Bank, BankPublic
 else:
     from src.bankDeposit.model import income as _income                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
     Income = _income.Income
@@ -30,9 +31,13 @@ else:
     Currency = _currency.Currency
     CurrencyPublic = _currency.CurrencyPublic
 
+    from src.misc.model import bank as _bank
+    Bank = _bank.Bank
+    BankPublic = _bank.BankPublic
+
 
 class DepositBase(SQLModel):
-    bank_name: str          #сейчас произвольное название, переделать на значение из БД
+    bank_id: int | None = SQLField(default=None, foreign_key="bank.id")
     customer_id: int | None = SQLField(default=None, foreign_key="customer.id")
     description: str
     duration: int
@@ -51,6 +56,7 @@ class Deposit(DepositBase, table=True):
     incomes: list["Income"] = Relationship(back_populates="deposit")                # "deposit" is a name of the attribute in the other model class "Income"
     customer: Optional["Customer"] = Relationship(back_populates="deposits")           # "deposits" is a name of the attribute in the other model class "Customer"
     currency: Optional["Currency"] = Relationship(back_populates="deposits")
+    bank: Optional["Bank"] = Relationship(back_populates="deposits")
 
 
 class DepositCreate(DepositBase):
@@ -62,7 +68,6 @@ class DepositPublic(DepositBase):
    
     customer: Optional["CustomerPublic"] = PydanticField(default=None, exclude=True)
     customer_id: int | None = PydanticField(exclude=True)
-
     @computed_field(return_type=str | None)
     def customer_name(self) -> str | None:
         if self.customer is None:
@@ -71,14 +76,20 @@ class DepositPublic(DepositBase):
     
     currency: Optional["CurrencyPublic"] = PydanticField(default=None, exclude=True)
     currency_id: int | None = PydanticField(exclude=True)
-
     @computed_field(return_type=str | None)
     def currency_name(self) -> str | None:
         if self.currency is None:
             return None
         return f"{self.currency.short_name}"
     
-
+    bank: Optional["BankPublic"] = PydanticField(default=None, exclude=True)
+    bank_id: int | None = PydanticField(exclude=True)
+    @computed_field(return_type=str | None)
+    def bank_name(self) -> str | None:
+        if self.bank is None:
+            return None
+        return f"{self.bank.short_name}"
+    
     @computed_field(return_type=Decimal)
     def interest_accrued(self) -> Decimal:          #начислено
         return calc_interest_accrued(self)

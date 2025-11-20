@@ -5,12 +5,14 @@ from csv import DictReader
 from src.database import SessionDep
 from src.misc.model.customer import Customer, CustomerCreate
 from src.misc.model.currency import Currency, CurrencyCreate
+from src.misc.model.bank import Bank, BankCreate
 
 
 router = APIRouter(prefix="/import-misc", tags=["import"])
 
 CUSTOMER_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/customers.csv") 
 CURRENCY_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/currencies.csv") 
+BANK_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/banks.csv") 
 
 
 async def import_from_csv(path: Path, create_model, db_model, session: SessionDep):
@@ -60,6 +62,13 @@ async def import_misc(session: SessionDep):
         session=session,
     )
 
+    bank_created, bank_errors = await import_from_csv(
+        path=BANK_CSV_PATH,
+        create_model=BankCreate,
+        db_model=Bank,
+        session=session,
+    )
+
     session.commit()
     return {
         "status": "ok",
@@ -70,5 +79,9 @@ async def import_misc(session: SessionDep):
         "currency": {
             "created": currency_created,
             "errors": currency_errors,
+        },
+        "bank": {
+            "created": bank_created,
+            "errors": bank_errors,
         },
     }
