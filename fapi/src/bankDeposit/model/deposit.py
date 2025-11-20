@@ -37,18 +37,18 @@ else:
 
 
 class DepositBase(SQLModel):
-    bank_id: int | None = SQLField(default=None, foreign_key="bank.id")
-    customer_id: int | None = SQLField(default=None, foreign_key="customer.id")
-    description: str
+    bank_id: int = SQLField(foreign_key="bank.id")
+    customer_id: int = SQLField(foreign_key="customer.id")
+    description: str | None = SQLField(default=None, nullable=True)
     duration: int
     date_open: date
     date_close: date | None = SQLField(default=None, nullable=True)
     currency_id: int | None = SQLField(default=None, foreign_key="currency.id")
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
-    topup_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
+    topup_value: Decimal | None = SQLField(default=None, sa_column=Column(Numeric(12, 2)))
     nominal_rate: Decimal = SQLField(sa_column=Column(Numeric(5, 2)))
     interest_term: InterestTerms
-    status: DepositStatus = SQLField(default=DepositStatus.ACTIVE)                                 #изменение статуса сопровождать проводкой
+    status: DepositStatus | None = SQLField(default=DepositStatus.ACTIVE)                                 #изменение статуса сопровождать проводкой
 
 
 class Deposit(DepositBase, table=True):

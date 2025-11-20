@@ -1,5 +1,5 @@
 <script setup>             //Cpmopsition API
-    import BankDepositService from '../services/BankDepositService.js';
+    import BankDepositService from '../services/BankDeposit.js';
     import { ref, onMounted } from 'vue';
 
     const deposits = ref([])
@@ -43,27 +43,32 @@
         <tr>
           <th>id</th>
           <th>банк</th>
-          <th>ставка* %</th>
-          <th>срок (дн)</th>
-          <th>дата закрытия</th>
           <th>сумма</th>
+          <th>срок (дн)</th>
+          <th>ставка ear %</th>
+          <th>начислено</th>
+          <th>выплачено</th>
+          <th>всего</th>
+          <th>дата закрытия</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="d in deposits" :key="d.id">
           <td>{{ d.id }}</td>
           <td>{{ d.bank_name }}</td>
-          <td>{{ d.effective_interest_rate }}</td>
+          <td>{{ d.principal_value }}</td>
           <td>{{ d.duration }}</td>
+          <td>{{ d.effective_rate }}</td>
+          <td>{{ d.interest_accrued }}</td>
+          <td>{{ d.interest_paid }}</td>
+          <td>{{ d.interest_total }}</td>
           <td>{{ d.date_close }}</td>
-          <td>{{ d.gross_value }}</td>
         </tr>
         <tr v-if="!loading && deposits.length === 0">
           <td colspan="7" style="text-align:center; color:#666">список пуст</td>
         </tr>
       </tbody>
     </table>
-    <span> * с учетом капитализации</span>
   </div>
 </template>
 
