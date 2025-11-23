@@ -17,15 +17,18 @@ title BANK_DEPOSITS_ERD
 object BankDeposit {
     id: PK
     bank_name: str
-    client_name: str
+    customer_name: str
+    currency_name: str
     description: str
     duration: int
     date_open: date
     date_close: date
     principal_value: Decimal
+    capitalized_value: Decimal
     topup_value: Decimal
     nominal_rate: Decimal
     interest_term: enum
+    interest_basis: enum
     status: enum
     incomes[]
 }
@@ -94,5 +97,8 @@ object Currency {
 }
 
 BankDeposit::income - Income::id
+BankDeposit::bank_name - Bank::id
+BankDeposit::customer_name - Customer::id
+BankDeposit::currency_name - Currency::id
 
 @enduml

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_FLOOR, getcontext, ROUND_HALF_UP, InvalidOperation
 from src.bankDeposit.model.income import Income, IncomeStatus
-from src.bankDeposit.model.deposit_parameters import InterestTerms
+from src.bankDeposit.model.parameters import InterestTerms
 from src.bankDeposit.service.utils import to_dec
 
 

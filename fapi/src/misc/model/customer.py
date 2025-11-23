@@ -1,7 +1,7 @@
 from enum import Enum
 from sqlmodel import SQLModel, Relationship, Field as SQLField
 from typing import Optional, TYPE_CHECKING
-from src.bankDeposit.model.deposit_parameters import IncomeStatus
+from src.bankDeposit.model.parameters import IncomeStatus
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.deposit import Deposit

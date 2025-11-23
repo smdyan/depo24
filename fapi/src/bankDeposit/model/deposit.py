@@ -5,13 +5,14 @@ from pydantic import computed_field, Field as PydanticField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from src.bankDeposit.service.deposit_parameters import (
+from src.bankDeposit.service.parameters import (
     calc_interest_accrued,
     calc_interest_paid,
     calc_interest_total,
     calc_effective_annual_rate,
 )
-from src.bankDeposit.model.deposit_parameters import InterestTerms, DepositStatus
+from src.bankDeposit.model.parameters import (
+    InterestTerms, InterestBasis, Withdrawal, DepositStatus )
 
 if TYPE_CHECKING:
     from src.bankDeposit.model.income import Income, IncomePublic
@@ -46,8 +47,11 @@ class DepositBase(SQLModel):
     currency_id: int | None = SQLField(default=None, foreign_key="currency.id")
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))
     topup_value: Decimal | None = SQLField(default=None, sa_column=Column(Numeric(12, 2)))
+    capitalized_value: Decimal | None = SQLField(default=None, sa_column=Column(Numeric(12, 2)))
     nominal_rate: Decimal = SQLField(sa_column=Column(Numeric(5, 2)))
     interest_term: InterestTerms
+    interest_basis: InterestBasis | None = SQLField(default=InterestBasis.CALENDAR_MONTH)
+    withdraw: Withdrawal | None = SQLField(default=Withdrawal.NOT_ALLOWED)
     status: DepositStatus | None = SQLField(default=DepositStatus.ACTIVE)                                 #изменение статуса сопровождать проводкой
 
 
@@ -91,15 +95,15 @@ class DepositPublic(DepositBase):
         return f"{self.bank.short_name}"
     
     @computed_field(return_type=Decimal)
-    def interest_accrued(self) -> Decimal:          #начислено
+    def interest_accrued(self) -> Decimal:              #начислено %
         return calc_interest_accrued(self)
 
     @computed_field(return_type=Decimal)
-    def interest_paid(self) -> Decimal:                #выплачено
+    def interest_paid(self) -> Decimal:                 #выплачено %
         return calc_interest_paid(self)
     
     @computed_field(return_type=Decimal)
-    def interest_total(self) -> Decimal:                #общая сумма процентов по вкладу
+    def interest_total(self) -> Decimal:                #сумма % в конце срока
         return calc_interest_total(self)
     
     @computed_field(return_type=Decimal)
