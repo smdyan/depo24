@@ -1,0 +1,62 @@
+@startuml depo_erd
+'https://plantuml.com/object-diagram
+'Opt+D to Preview
+
+<style>
+    document {
+        BackGroundColor Linen
+    }
+    root {
+        FontColor #?black:white
+        LineColor gray
+    }
+</style>
+
+title LEDGER_ERD
+
+
+object Transaction {
+    id: PK
+    operation_id: FK
+    transaction_type
+    product_type
+    product_id
+    status
+    posted_at
+    description
+    entries[]
+}
+
+object  Account {
+    id: PK
+    name
+    code
+    level
+    type
+    status
+    parent_id: FK
+    children_id: FK
+    transactions[]
+}
+
+
+object Entry {
+    id
+    transaction_id
+    debit_id
+    credit_id
+    amount
+    date
+    description
+}
+
+
+Transaction::operation_id - Operation::transaction_id
+Transaction::product_id - Deposit::id
+Transaction::entries - Entry::id
+Entry::debit_id - Account::id
+Entry::credit_id - Account::id
+
+
+
+@enduml

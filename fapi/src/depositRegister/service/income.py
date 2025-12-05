@@ -2,11 +2,11 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext
-from src.bankDeposit.model.income import Income
-from src.bankDeposit.model.parameters import InterestTerms, InterestBasis
-from src.bankDeposit.model.income import IncomeStatus
-from src.bankDeposit.model.deposit import Deposit
-from src.bankDeposit.service.utils import to_dec
+from src.depositRegister.model.income import Income
+from src.depositRegister.model.parameters import InterestTerms, InterestBasis
+from src.depositRegister.model.income import IncomeStatus
+from src.depositRegister.model.deposit import Deposit
+from src.depositRegister.service.utils import to_dec
 
 
 def calc_income_array(

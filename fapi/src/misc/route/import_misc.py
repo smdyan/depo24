@@ -10,9 +10,9 @@ from src.misc.model.bank import Bank, BankCreate
 
 router = APIRouter(prefix="/import-misc", tags=["import"])
 
-CUSTOMER_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/customers.csv") 
-CURRENCY_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/currencies.csv") 
-BANK_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/asset/banks.csv") 
+CUSTOMER_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/customers.csv") 
+CURRENCY_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/currencies.csv") 
+BANK_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/banks.csv") 
 
 
 async def import_from_csv(path: Path, create_model, db_model, session: SessionDep):

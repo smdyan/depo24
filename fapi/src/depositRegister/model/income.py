@@ -4,10 +4,10 @@ from sqlmodel import SQLModel, Relationship, Field as SQLField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from src.bankDeposit.model.parameters import IncomeStatus
+from src.depositRegister.model.parameters import IncomeStatus
 
 if TYPE_CHECKING:
-    from src.bankDeposit.model.deposit import Deposit
+    from src.depositRegister.model.deposit import Deposit
 
 
 class IncomeBase(SQLModel):                                                   #parent data model

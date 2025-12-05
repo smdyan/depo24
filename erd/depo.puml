@@ -12,112 +12,118 @@
     }
 </style>
 
-title DEPO_ERD
+title BANK_DEPOSITS_ERD
 
-
-
-object CashOpetation {
+object BankDeposit {
     id: PK
-    operationId
-    typeId
-    date
-    accountId: FK
+    bank_name: str
+    customer_name: str
+    currency_name: str
+    description: str
+    duration: int
+    date_open: date
+    date_close: date
+    principal_value: Decimal
+    capitalized_value: Decimal
+    topup_value: Decimal
+    nominal_rate: Decimal
+    interest_term: enum
+    interest_basis: enum
+    status: enum
+    incomes[]
+    operations[]
 }
 
-object BondTradeTransaction {
+object Income {
     id: PK
-    tradeId
-    date_time
-    accountId: FK
-    typeId
-    bondId: FK
-    price
-    tradeCurrencyId: FK
-    quantity
-}
-
-object BondOtherTransaction {
-    id: PK
-    type
-    date
-    confirmationDoc
     value
+    period
+    date_payment
+    deposit_id: FK
 }
 
-object Bond {
-    id: PK
-    shortName
-    isin
-    secid
-    faceValue
-    currencyId: FK
-    issDate
-    matDate
-    offerDate
-    listName
-    secType
-    boardName
-    coupons[]
-    marketData[]
+object Operation {
+    id
+    deposit_id
+    transaction_id
+    operation_type
+    amount
+    operation_date
+    description
 }
 
-object MarketData {
-    id: PK
-    bondId: FK
-    date
-    price
-    closePrice
-    minPrice
-    maxPrice
+
+object Customer {
+    id
+    first_name
+    second_name
+    middle_name
 }
 
-object Coupon {
-    id: PK
-    bondId: FK
-    date
-    value
+
+object Bank {
+    id
+    short_name
+    full_name
+    address
+    status
 }
+
 
 object Currency {
     id: PK
-    name
+    short_name
+    full_name
+    country
 }
+
 
 object  Account {
     id: PK
-    accHierarchyId: FK
-    journalEntries[]
-    Kt[]
-    Balance
-}
-
-' синтетический счет, субсчет, аналитический счет
-object AccHierarchy {
-    id: PK
-    level
-    number
     name
+    code
+    level
     type
-    accHierarchyId: FK
+    status
+    parent_id: FK
+    children_id: FK
+    transactions[]
 }
 
-object JournalEntry {
-    date
+
+object Entry {
+    id
+    transaction_id
+    debit_id
+    credit_id
     amount
-    unit
+    date
     description
-    debit
-    credit
 }
 
-BondTradeTransaction::bondId       }o..||  Bond::id
-BondTradeTransaction::accountId    }o..||  Account::id
-BondTradeTransaction::currencyId    }o..||  Currency::id
-Bond::currencyId }o..|| Currency::id
-Bond::coupons  ||..o{  Coupon::bondId
-Bond::marketData    ||..o{  MarketData::bondId
-Account::accHierarchyId |o..|| AccHierarchy::id
-AccHierarchy::accHierarchyId }o....o| AccHierarchy::id
-Account::journalEntries .. JournalEntry
+
+object Transaction {
+    id: PK
+    operation_id: FK
+    transaction_type
+    product_type
+    product_id
+    status
+    posted_at
+    description
+    entries[]
+}
+
+
+BankDeposit::income - Income::id
+BankDeposit::bank_name - Bank::id
+BankDeposit::customer_name - Customer::id
+BankDeposit::currency_name - Currency::id
+
+JournalEntry::entryLines - EntryLine::id
+EntryLine::debit_acc_id - Account::id
+EntryLine::credit_acc_id - Account::id
+Account::accHierarchyId - AccHierarchy::id
+
 
 @enduml

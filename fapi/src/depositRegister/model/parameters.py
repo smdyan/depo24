@@ -13,10 +13,10 @@ class InterestBasis(IntEnum):
     OPEN_DATE = 2                   # расчеты ежемесячно с даты открытия счета
     DAYLY = 3                       # начисление ежедневно
 
-class Withdrawal(IntEnum):
-    NOT_ALLOWED = 0
-    ALLOWED = 1                     # 
-    LIMITED = 2                     # в пределах неснижаемого остатка
+class Withdrawal(str, Enum):
+    NOT_ALLOWED = "not_allowed"
+    ALLOWED = "allowed"                     # 
+    LIMITED = "limited"                     # в пределах неснижаемого остатка
 
 class DepositStatus(IntEnum):
     CLOSED = 0
@@ -27,10 +27,26 @@ class DepositStatus(IntEnum):
         return self is DepositStatus.ACTIVE
     
 
-class IncomeStatus(IntEnum):
-    PENDING = 1             # предстоящая выплата %
-    PAID = 0
+class IncomeStatus(str, Enum):
+    PENDING = "pending"             # предстоящая выплата %
+    PAID = "paid"
 
     @property
     def is_pending(self) -> bool:
         return self is IncomeStatus.PENDING
+    
+
+class DepositOperationType(str, Enum):
+    OPEN = "open"
+    INITIAL_DEPOSIT = "initial_deposit"
+    TOPUP = "topup"
+    WITHDRAWAL_PARTIAL = "withdrawal_partial"
+    WITHDRAWAL_FULL = "withdrawal_full"
+    INTEREST_ACCRUAL = "interest_accrual"
+    INTEREST_CAPITALIZE = "interest_capitalize"
+    INTEREST_PAYOUT = "interest_payout"
+    RENEWAL = "renewal"
+    CLOSE = "close"
+    EARLY_CLOSE = "early_close"
+    FEE = "fee"
+    CORRECTION = "correction"

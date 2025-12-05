@@ -5,22 +5,22 @@ from pydantic import computed_field, Field as PydanticField
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from src.bankDeposit.service.parameters import (
+from src.depositRegister.service.parameters import (
     calc_interest_accrued,
     calc_interest_paid,
     calc_interest_total,
     calc_effective_annual_rate,
 )
-from src.bankDeposit.model.parameters import (
+from src.depositRegister.model.parameters import (
     InterestTerms, InterestBasis, Withdrawal, DepositStatus )
 
 if TYPE_CHECKING:
-    from src.bankDeposit.model.income import Income, IncomePublic
+    from src.depositRegister.model.income import Income, IncomePublic
     from src.misc.model.customer import Customer, CustomerPublic
     from src.misc.model.currency import Currency, CurrencyPublic
     from src.misc.model.bank import Bank, BankPublic
 else:
-    from src.bankDeposit.model import income as _income                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
+    from src.depositRegister.model import income as _income                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
     Income = _income.Income
     IncomePublic = _income.IncomePublic
 
