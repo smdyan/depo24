@@ -1,16 +1,14 @@
 from sqlmodel import SQLModel, Relationship, Field as SQLField
-from pydantic import computed_field, Field as PydanticField
 from typing import Optional, List, TYPE_CHECKING
 from src.ledger.model.parameters import (
     AccountLevel, AccountType, AccountStatus
 )
-from src.ledger.service.parameters import get_children
-# if TYPE_CHECKING:
-#     from src.ledger.model.entry import Entry, EntryPublic
-# else:
-#     from src.ledger.model import entry as _entry                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
-#     Entry = _entry.Entry
-#     EntryPublic = _entry.EntryPublic
+if TYPE_CHECKING:
+    from src.ledger.model.entry import Entry, EntryPublic
+else:
+    from src.ledger.model import entry as _entry                     # noqa: F401 # Ensure Entry models are registered with SQLModel at runtime
+    Entry = _entry.Entry
+    EntryPublic = _entry.EntryPublic
 
 
 class  AccountBase(SQLModel):
@@ -29,9 +27,17 @@ class Account(AccountBase, table=True):
         sa_relationship_kwargs={"remote_side": "Account.id"}                        # remote_side указывает на сторону “родителя”.
     )
     children: Optional[List["Account"]] = Relationship(back_populates="parent")
+    debit_entries: list["Entry"] = Relationship(
+        back_populates="debit_account",
+        sa_relationship_kwargs={"foreign_keys": "[Entry.debit_account_id]"},
+    )
+    credit_entries: list["Entry"] = Relationship(
+        back_populates="credit_account",
+        sa_relationship_kwargs={"foreign_keys": "[Entry.credit_account_id]"},
+    )
 
 
-class AccountCreate(AccountBase):           # parent_name,name,level,code,type
+class AccountCreate(AccountBase):
     parent_name: str | None = None
 
 
