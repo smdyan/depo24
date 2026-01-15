@@ -3,16 +3,16 @@ from pathlib import Path
 from pydantic import ValidationError
 from csv import DictReader
 from src.database import SessionDep
-from src.misc.model.customer import Customer, CustomerCreate
-from src.misc.model.currency import Currency, CurrencyCreate
-from src.misc.model.bank import Bank, BankCreate
+from src.reference.model.customer import Customer, CustomerCreate
+from src.reference.model.currency import Currency, CurrencyCreate
+from src.reference.model.bank import Bank, BankCreate
 
 
-router = APIRouter(prefix="/import-misc", tags=["import"])
+router = APIRouter(prefix="/refs", tags=["refs"])
 
-CUSTOMER_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/customers.csv") 
-CURRENCY_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/currencies.csv") 
-BANK_CSV_PATH = Path("/Users/lily/depo24/fapi/src/misc/assets/banks.csv") 
+CUSTOMER_CSV_PATH = Path("/Users/lily/depo24/fapi/src/reference/assets/customers.csv") 
+CURRENCY_CSV_PATH = Path("/Users/lily/depo24/fapi/src/reference/assets/currencies.csv") 
+BANK_CSV_PATH = Path("/Users/lily/depo24/fapi/src/reference/assets/banks.csv") 
 
 
 async def import_from_csv(path: Path, create_model, db_model, session: SessionDep):
@@ -46,8 +46,9 @@ async def import_from_csv(path: Path, create_model, db_model, session: SessionDe
 
     return created, errors
 
-@router.post("/")
-async def import_misc(session: SessionDep):
+@router.post("/import-all")
+async def import_refs(session: SessionDep):
+    
     customer_created, customer_errors = await import_from_csv(
         path=CUSTOMER_CSV_PATH,
         create_model=CustomerCreate,

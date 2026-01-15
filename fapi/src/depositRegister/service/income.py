@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from enum import IntEnum
 from decimal import Decimal, ROUND_FLOOR, getcontext
 from src.depositRegister.model.income import Income
-from src.depositRegister.model.parameters import InterestTerms, InterestBasis
+from src.depositRegister.model.parameters import InterestTerms, PeriodAnchor
 from src.depositRegister.model.income import IncomeStatus
 from src.depositRegister.model.deposit import Deposit
 from src.depositRegister.service.utils import to_dec
@@ -20,7 +20,7 @@ def calc_income_array(
     date_open = deposit.date_open
     date_close = deposit.date_close
     interest_term = deposit.interest_term
-    interest_basis = deposit.interest_basis
+    interest_basis = deposit.interest_basis                 # to delete - not used
     
     P = to_dec(deposit.principal_value)
     r = to_dec(deposit.nominal_rate) / Decimal(100)

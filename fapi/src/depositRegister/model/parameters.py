@@ -1,52 +1,41 @@
 from enum import Enum, IntEnum
 
+class ProductType(str, Enum):                   # тут временно, вынести в за границы депозита 
+    DEPOSIT = "deposit"
 
-class InterestTerms(IntEnum):
-    END_OF_TERM = 1               # выплата % в конце срока вклада
-    MONTHLY_COMPOUND = 2          # капитализация % ко вкладу ежемесячно
-    MONTHLY_PAYOUT = 3            # выплата % на расчетный счет ежемесячно
-    VALLET = 4                    # начисление % ежедневно на остаток средств, выплата ежемесячно
+class InterestTerms(str, Enum):
+    END_OF_TERM = "end_of_term"                 # выплата % в конце срока вклада
+    MONTHLY = "monthly"                         # выплата % ежемесячно
+
+class PeriodAnchor(str, Enum):
+    CALENDAR_MONTH = "calendar_month"           # рассчеты производятся 1 числа месяца
+    DEPOSIT_OPEN_DATE = "deposit_open_date"     # расчеты ежемесячно с даты открытия счета
 
 
-class InterestBasis(IntEnum):
-    CALENDAR_MONTH = 1              # рассчеты производятся 1 числа, на минимальную сумму за период
-    OPEN_DATE = 2                   # расчеты ежемесячно с даты открытия счета
-    DAYLY = 3                       # начисление ежедневно
+class InterestPayout(str, Enum):
+    PAYOUT = "payout"                           # выплата % на расчетный счет
+    CAPITALIZE = "capitalize"                   # причисление % к сумме вклада
 
-class Withdrawal(str, Enum):
-    NOT_ALLOWED = "not_allowed"
-    ALLOWED = "allowed"                     # 
-    LIMITED = "limited"                     # в пределах неснижаемого остатка
 
 class DepositStatus(IntEnum):
     CLOSED = 0
-    ACTIVE = 1                      # действующий вклад
-    
-    @property
-    def is_active(self) -> bool:
-        return self is DepositStatus.ACTIVE
+    ACTIVE = 1                                  # действующий вклад
     
 
-class IncomeStatus(str, Enum):
-    PENDING = "pending"             # предстоящая выплата %
+class IncomeStatus(str, Enum):                  # УДАЛИТЬ
+    PENDING = "pending"                         # предстоящая выплата %
     PAID = "paid"
-
-    @property
-    def is_pending(self) -> bool:
-        return self is IncomeStatus.PENDING
     
 
 class DepositOperationType(str, Enum):
     OPEN = "open"
-    INITIAL_DEPOSIT = "initial_deposit"
     TOPUP = "topup"
-    WITHDRAWAL_PARTIAL = "withdrawal_partial"
-    WITHDRAWAL_FULL = "withdrawal_full"
+    WITHDRAWAL = "withdrawal"
     INTEREST_ACCRUAL = "interest_accrual"
     INTEREST_CAPITALIZE = "interest_capitalize"
     INTEREST_PAYOUT = "interest_payout"
-    RENEWAL = "renewal"
     CLOSE = "close"
     EARLY_CLOSE = "early_close"
-    FEE = "fee"
     CORRECTION = "correction"
+    CHANGE_DURATION = "change_duration"
+    CHANGE_RATE = "change_rate"

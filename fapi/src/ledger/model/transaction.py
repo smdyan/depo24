@@ -1,17 +1,11 @@
-from sqlalchemy import Column, Numeric
 from sqlmodel import SQLModel, Relationship, Field as SQLField
-from pydantic import computed_field, Field as PydanticField
 from typing import Optional, List, TYPE_CHECKING
-from datetime import date
+from datetime import date, datetime, timezone
 from src.ledger.model.parameters import (
     TransactionType, TransactionStatus, ProductType)
 
 if TYPE_CHECKING:
-    from src.ledger.model.entry import Entry, EntryPublic
-else:
-    from src.ledger.model import entry as _entry                     # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
-    Entry = _entry.Entry
-    EntryPublic = _entry.EntryPublic
+    from src.ledger.model.entry import Entry
 
 
 class  TransactionBase(SQLModel):
@@ -19,7 +13,7 @@ class  TransactionBase(SQLModel):
     product_type: ProductType
     product_id: Optional[int] = SQLField(default=None, foreign_key="deposit.id")    #подумать над абстрактным классом "продукт"
     status: TransactionStatus = TransactionStatus.POSTED
-    posted_at: date = SQLField(default_factory=date.utcnow)
+    posted_at: datetime = SQLField(default_factory=lambda: datetime.now(timezone.utc))
     description: Optional[str] = None
 
 

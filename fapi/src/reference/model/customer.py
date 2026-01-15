@@ -8,9 +8,10 @@ if TYPE_CHECKING:
     from src.depositRegister.model.deposit import DepositPublic
 
 class CustomerBase(SQLModel):
-    first_name: str
-    second_name: str
-    middle_name: str
+    first_name:     str
+    second_name:    str
+    middle_name:    str
+    status:         bool = SQLField(default=True)
     
 
 class Customer(CustomerBase, table=True):

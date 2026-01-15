@@ -5,20 +5,20 @@ if TYPE_CHECKING:
     from src.depositRegister.model.deposit import Deposit
 
 class CurrencyBase(SQLModel):
-    short_name: str
-    full_name: str
+    name: str
     country: str
+    status: bool = SQLField(default=True)
     
 
 class Currency(CurrencyBase, table=True):
-    id: int = SQLField(default=None, primary_key=True)
-    deposits: Optional[list["Deposit"]] = Relationship(back_populates="currency")
+    code: str = SQLField(primary_key=True)
+    # deposits: Optional[list["Deposit"]] = Relationship(back_populates="currency")
 
 
 class CurrencyPublic(CurrencyBase):
-    id: int
+    code: str
 
 
 class CurrencyCreate(CurrencyBase):
-    pass
+    code: str
 

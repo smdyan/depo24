@@ -7,12 +7,6 @@ if TYPE_CHECKING:
     from src.ledger.model.account import Account
     from src.ledger.model.transaction import Transaction
 
-else:
-    from src.ledger.model import account as _account                                # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
-    Account = _account.Account
-    from src.ledger.model import transaction as _transaction                        # noqa: F401 # Ensure Income models are registered with SQLModel at runtime
-    Transaction = _transaction.Transaction
-
 
 class  EntryBase(SQLModel):
     transaction_id: int = SQLField(foreign_key="transaction.id")
@@ -42,4 +36,3 @@ class EntryCreate(EntryBase):
 
 class EntryPublic(EntryBase):
     id: int
-
