@@ -15,6 +15,7 @@ class OperationBase(SQLModel):
     deposit_id: int | None = SQLField(default=None, foreign_key="deposit.id")       # "deposit" is the default name of the table in the database
     operation_type: DepositOperationType
     business_date: date
+    operation_date: date
     amount: Decimal = SQLField(sa_column=Column(Numeric(12, 2)), default=Decimal("0.00"))
     payload_json: str | None = SQLField(default=None)
 

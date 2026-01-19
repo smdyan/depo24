@@ -11,7 +11,7 @@ from datetime import date
 #     calc_effective_annual_rate,
 # )
 from src.depositRegister.model.parameters import (
-    InterestTerms, PeriodAnchor, InterestPayout, DepositStatus )
+    InterestTerms, PeriodAnchor, InterestModes, DepositStatus )
 
 if TYPE_CHECKING:
     from src.reference.model.customer import Customer, CustomerPublic
@@ -37,15 +37,17 @@ class DepositBase(SQLModel):
     description: str | None = SQLField(default=None, nullable=True)
     currency_code: str | None = SQLField(default="RUR")
     interest_term: InterestTerms
-    interest_payout: InterestPayout | None = SQLField(default=None)
-    interest_basis: PeriodAnchor | None = SQLField(default=PeriodAnchor.CALENDAR_MONTH)
+    interest_period_basis: PeriodAnchor | None = SQLField(default=PeriodAnchor.CALENDAR_MONTH)
+    interest_mode: InterestModes | None = SQLField(default=None)
     nominal_rate: Decimal = SQLField(sa_column=Column(Numeric(5, 2)))
     duration: int                                                                                   # Если 0, то вклад до востребования
     date_open: date
     date_close: date | None = SQLField(default=None, nullable=True)
+    date_last_accruel: date | None = SQLField(default=None, nullable=True)
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))                           # Текущие агрегаты (для быстрого чтения). Истина — журнал операций.
     topup_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))             # тоже
     capitalized_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))       # тоже
+    paid_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))              # тоже
     accrued_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))           # тоже
     status: DepositStatus | None = SQLField(default=DepositStatus.ACTIVE)
 
@@ -55,7 +57,6 @@ class Deposit(DepositBase, table=True):
     customer: Optional["Customer"] = Relationship(back_populates="deposits")                        # "deposits" is a name of the attribute in the other model class "Customer"
     bank: Optional["Bank"] = Relationship(back_populates="deposits")
     operations: Optional[List["Operation"]] = Relationship(back_populates="deposit")                # "deposit" is a name of the attribute in the other model class "Operation"
-    date_last_accruel: Optional[date]
 
 class DepositCreate(DepositBase):
     model_config = {"extra": "forbid"}

@@ -12,7 +12,7 @@ class PeriodAnchor(str, Enum):
     DEPOSIT_OPEN_DATE = "deposit_open_date"     # расчеты ежемесячно с даты открытия счета
 
 
-class InterestPayout(str, Enum):
+class InterestModes(str, Enum):
     PAYOUT = "payout"                           # выплата % на расчетный счет
     CAPITALIZE = "capitalize"                   # причисление % к сумме вклада
 

@@ -20,7 +20,7 @@ def calc_income_array(
     date_open = deposit.date_open
     date_close = deposit.date_close
     interest_term = deposit.interest_term
-    interest_basis = deposit.interest_basis                 # to delete - not used
+    interest_basis = deposit.interest_period_basis                 # to delete - not used
     
     P = to_dec(deposit.principal_value)
     r = to_dec(deposit.nominal_rate) / Decimal(100)

@@ -17,6 +17,7 @@ def get_open_operation(
     op = Operation(
         operation_type=DepositOperationType.OPEN,
         business_date=deposit.date_open,
+        operation_date=date.today(),
         amount=deposit.principal_value,
         payload_json=json.dumps(payload, ensure_ascii=False),
     )

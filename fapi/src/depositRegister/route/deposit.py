@@ -66,8 +66,14 @@ async def doAccruels(id: int, session: SessionDep):
         raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
     
     obj.operations.extend(result.operations)
+
+    obj.date_last_accruel = result.last_accruel_date
     obj.accrued_value = result.accrued_value
-    obj.date_last_accruel = result.last_accrual_date
+    obj.principal_value = result.principal_value
+    obj.topup_value = result.topup_value
+    obj.capitalized_value = result.capitalized_value
+    obj.paid_value = result.paid_value
+    obj.status = result.status
 
     session.add(obj)
     session.commit()
