@@ -5,11 +5,7 @@ from pydantic import computed_field, Field as PydanticField
 from decimal import Decimal
 from typing import List, Optional, TYPE_CHECKING
 from datetime import date
-# from src.depositRegister.service.parameters import (
-#     calc_interest_paid,
-#     calc_interest_total,
-#     calc_effective_annual_rate,
-# )
+# from src.depositRegister.service.parameters import calc_effective_annual_rate
 from src.depositRegister.model.parameters import (
     InterestTerms, PeriodAnchor, InterestModes, DepositStatus )
 
@@ -43,7 +39,7 @@ class DepositBase(SQLModel):
     duration: int                                                                                   # Если 0, то вклад до востребования
     date_open: date
     date_close: date | None = SQLField(default=None, nullable=True)
-    date_last_accruel: date | None = SQLField(default=None, nullable=True)
+    date_last_accrual: date | None = SQLField(default=None, nullable=True)
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))                           # Текущие агрегаты (для быстрого чтения). Истина — журнал операций.
     topup_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))             # тоже
     capitalized_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))       # тоже
@@ -76,7 +72,6 @@ class DepositPublic(DepositBase):
         return f"{self.customer.second_name} {self.customer.first_name} {self.customer.middle_name}"
     
     bank: Optional["BankPublic"] = PydanticField(default=None, exclude=True)
-   
     bank_id: int | None = PydanticField(exclude=True)
     
     @computed_field(return_type=str | None)
@@ -84,15 +79,7 @@ class DepositPublic(DepositBase):
         if self.bank is None:
             return None
         return f"{self.bank.short_name}"
-    
-    # @computed_field(return_type=Decimal)
-    # def interest_paid(self) -> Decimal:                 # выплачено %
-    #     return calc_interest_paid(self)
-    
-    # @computed_field(return_type=Decimal)
-    # def interest_total(self) -> Decimal:                # сумма % в конце срока
-    #     return calc_interest_total(self)
-    
+
     # @computed_field(return_type=Decimal)
     # def effective_rate(self) -> Decimal:                # EAR
     #     return calc_effective_annual_rate(self)

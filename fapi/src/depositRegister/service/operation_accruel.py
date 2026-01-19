@@ -1,5 +1,5 @@
 from typing import Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_FLOOR, getcontext
@@ -13,7 +13,7 @@ from src.depositRegister.service.utils import to_dec
 @dataclass
 class AccrualResult:
     operations: list["Operation"]
-    last_accruel_date: date
+    last_accrual_date: date
     accrued_value: Decimal
     principal_value: Decimal
     topup_value: Decimal
@@ -26,13 +26,12 @@ def calc_accruels(
     deposit: Deposit,
     day_count_base: int = 365,
 ) -> AccrualResult:    
-    
-    getcontext().prec = 14
 
-    operations: list[Operation] = []
+    operations: list[Operation] = field(default_factory=list)
+
     res = AccrualResult (
         operations = operations,
-        last_accruel_date = deposit.date_last_accruel,
+        last_accrual_date = deposit.date_last_accrual,
         accrued_value = deposit.accrued_value,
         principal_value = deposit.principal_value,
         topup_value = deposit.topup_value,
@@ -45,35 +44,35 @@ def calc_accruels(
         raise DepositNotActive(f"Deposit {deposit.id} is not active")
 
     date_operation = date.today()                                           # T+1
-    accruel_period_start = deposit.date_last_accruel + timedelta(days=1)
+    accrual_period_start = deposit.date_last_accrual + timedelta(days=1)
     # период начисления заканчивается датой перед днем фактического проведения операции или перед днем закрытия вклада
     min_date = min(date_operation, deposit.date_close)
-    accruel_period_end = min_date - timedelta(days=1)                       # T
+    accrual_period_end = min_date - timedelta(days=1)                       # T
 
-    if deposit.date_last_accruel >= accruel_period_end:
+    if deposit.date_last_accrual >= accrual_period_end:
         raise AccrualAlreadyDone(f"Deposit {deposit.id} accruels already done")
 
     rate: Decimal = deposit.nominal_rate
     val: Decimal = _base_value(res.principal_value, res.topup_value, res.capitalized_value)
-    accruel_per_day: Decimal = _calc_int_per_day(val, rate, day_count_base)
+    accrual_per_day: Decimal = _calc_int_per_day(val, rate, day_count_base)
 
     # ежедневные начисления
-    for date_accruel in _iter_days(accruel_period_start, accruel_period_end):
-        res.accrued_value += accruel_per_day
-        payload_accruel = _build_accruel_payload(accruel_period=date_accruel, rate=rate, base_value=val)
+    for date_accrual in _iter_days(accrual_period_start, accrual_period_end):
+        res.accrued_value += accrual_per_day
+        payload_accrual = _build_accrual_payload(rate=rate, base_value=to_dec(val), accrued_value=to_dec(res.accrued_value))
         
-        operations.append(
+        res.operations.append(
             Operation(
                 operation_type = DepositOperationType.INTEREST_ACCRUAL,
-                business_date = date_accruel,
+                business_date = date_accrual,
                 operation_date = date_operation,
-                amount = accruel_per_day,
-                payload_json = json.dumps(payload_accruel, ensure_ascii=False),
+                amount = to_dec(accrual_per_day),
+                payload_json = json.dumps(payload_accrual, ensure_ascii=False),
             )
         )
         # выплата начисленных % или капитализация
-        if _is_payout_next_day(date_accruel, deposit):
-            date_payout = date_accruel + timedelta(days=1)
+        if _is_payout_next_day(date_accrual, deposit):
+            date_payout = date_accrual + timedelta(days=1)
 
             if deposit.interest_mode == InterestModes.PAYOUT:
                 operation_type = DepositOperationType.INTEREST_PAYOUT
@@ -85,30 +84,30 @@ def calc_accruels(
                 payload = _build_payout_payload()
                 res.capitalized_value += res.accrued_value
             
-            operations.append(
+            res.operations.append(
                 Operation(
                     operation_type=operation_type,
                     business_date=date_payout,
                     operation_date=date_operation,
-                    amount=res.accrued_value,
+                    amount=to_dec(res.accrued_value),
                     payload_json=json.dumps(payload, ensure_ascii=False),
                 )
             )
             res.accrued_value = Decimal("0")
             val = _base_value(res.principal_value, res.topup_value, res.capitalized_value)
-            accruel_per_day = _calc_int_per_day(val, rate, day_count_base)
+            accrual_per_day = _calc_int_per_day(val, rate, day_count_base)
 
-    res.last_accruel_date = accruel_period_end
+    res.last_accrual_date = accrual_period_end
 
     # зарытие вклада    
-    if accruel_period_end == deposit.date_close - timedelta(days=1):
-        payload_close = _build_close_payload(principal_val=res.principal_value, topup_val=res.topup_value, capitalized_val=res.capitalized_value)
-        operations.append(
+    if accrual_period_end == deposit.date_close - timedelta(days=1):
+        payload_close = _build_close_payload(principal_val=res.principal_value, topup_val=res.topup_value, capitalized_val=to_dec(res.capitalized_value))
+        res.operations.append(
                 Operation(
                     operation_type = DepositOperationType.CLOSE,
                     business_date = deposit.date_close,
                     operation_date = date_operation,
-                    amount = val,
+                    amount = to_dec(val),
                     payload_json = json.dumps(payload_close, ensure_ascii=False),
                 )
             )
@@ -134,16 +133,16 @@ def _build_close_payload(
     }
     return payload
 
-def _build_accruel_payload(
+def _build_accrual_payload(
     *,
-    accruel_period: date,
     rate: Decimal,
     base_value: Decimal,
+    accrued_value: Decimal,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
-        "period": accruel_period.isoformat(),       # ISO 8601
-        "rate": format(rate, "f"),                  # Decimal → string without scientific notation
-        "base_value": format(base_value, "f"),      # Decimal → string
+        "rate": format(rate, "f"),                                  # Decimal → string without scientific notation
+        "base_value": format(base_value, "f"),              # Decimal → string
+        "accrued_value": format(accrued_value, "f"),        # Decimal → string
     }
     return payload
 
@@ -164,11 +163,11 @@ def _iter_days(start: date, end: date):
 
 def _is_payout_next_day(d: date, deposit: Deposit) -> bool:
     """True если следующий день после d — это день выплаты % (1-е число или день открытия вклада)"""
-    period_basis = deposit.interest_period_basis
-    date_open = deposit.date_open
-    if deposit.interest_term==InterestTerms.MONTHLY and period_basis==PeriodAnchor.CALENDAR_MONTH:
+    if (d + timedelta(days=1)) == deposit.date_close:
+        return True
+    if deposit.interest_term==InterestTerms.MONTHLY and deposit.interest_period_basis==PeriodAnchor.CALENDAR_MONTH:
         return (d + timedelta(days=1)).day == 1
-    elif deposit.interest_term==InterestTerms.MONTHLY and deposit.interest_period_basis==PeriodAnchor.DEPOSIT_OPEN_DATE:
+    elif deposit.interest_term==InterestTerms.MONTHLY and deposit.interest_period_basis==PeriodAnchor.DEPOSIT_DATE:
         payout_date = _payout_date_for_month(
             year=(d + timedelta(days=1)).year,
             month=(d + timedelta(days=1)).month,
@@ -176,7 +175,8 @@ def _is_payout_next_day(d: date, deposit: Deposit) -> bool:
         )
         return (d + timedelta(days=1)) == payout_date
     else:
-        return (d + timedelta(days=1)) == deposit.date_close
+        return False
+
 
 def _payout_date_for_month(year: int, month: int, anchor_day: int) -> date:
     last = _last_day_of_month(date(year, month, 1))
@@ -189,7 +189,7 @@ def _last_day_of_month(d: date) -> date:
     return first_next - timedelta(days=1)
 
 def _base_value(principal_val, topup_val, capitalized_val) -> Decimal:
-    return Decimal(principal_val + topup_val + capitalized_val)
+    return principal_val + topup_val + capitalized_val
 
 def _calc_int_per_day(val: Decimal, r: Decimal, day_count_base: int) -> Decimal: 
     return val/Decimal(day_count_base)*r/Decimal("100")

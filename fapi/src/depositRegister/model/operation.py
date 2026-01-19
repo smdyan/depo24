@@ -26,7 +26,6 @@ class Operation(OperationBase, table=True):
 
 
 class OperationPublic(OperationBase):
-    id: int
     payload_json: dict[str, Any] | None = None
 
     @field_validator("payload_json", mode="before")

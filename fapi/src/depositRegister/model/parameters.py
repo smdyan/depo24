@@ -9,7 +9,7 @@ class InterestTerms(str, Enum):
 
 class PeriodAnchor(str, Enum):
     CALENDAR_MONTH = "calendar_month"           # рассчеты производятся 1 числа месяца
-    DEPOSIT_OPEN_DATE = "deposit_open_date"     # расчеты ежемесячно с даты открытия счета
+    DEPOSIT_DATE = "deposit_open_date"          # расчеты ежемесячно с даты открытия счета
 
 
 class InterestModes(str, Enum):
@@ -17,16 +17,11 @@ class InterestModes(str, Enum):
     CAPITALIZE = "capitalize"                   # причисление % к сумме вклада
 
 
-class DepositStatus(IntEnum):
-    CLOSED = 0
-    ACTIVE = 1                                  # действующий вклад
+class DepositStatus(str, Enum):
+    CLOSED = "closed"
+    ACTIVE = "active"                                  # действующий вклад
     
-
-class IncomeStatus(str, Enum):                  # УДАЛИТЬ
-    PENDING = "pending"                         # предстоящая выплата %
-    PAID = "paid"
     
-
 class DepositOperationType(str, Enum):
     OPEN = "open"
     TOPUP = "topup"
@@ -39,3 +34,8 @@ class DepositOperationType(str, Enum):
     CORRECTION = "correction"
     CHANGE_DURATION = "change_duration"
     CHANGE_RATE = "change_rate"
+
+
+class IncomeStatus(str, Enum):                  # УДАЛИТЬ
+    PENDING = "pending"                         # предстоящая выплата %
+    PAID = "paid"
