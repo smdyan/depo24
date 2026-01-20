@@ -11,7 +11,7 @@ if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 from src.database import engine, sqlite_url  # noqa: E402
-from src.bankDeposit.model import deposit, income  # noqa: F401,E402
+from src.depositRegister.model import deposit  # noqa: F401,E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

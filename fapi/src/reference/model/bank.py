@@ -13,7 +13,7 @@ class BankBase(SQLModel):
 
 class Bank(BankBase, table=True):
     id: int = SQLField(default=None, primary_key=True)
-    deposits: Optional[list["Deposit"]] = Relationship(back_populates="bank") #удалить можно ли?
+    deposits: Optional[list["Deposit"]] = Relationship(back_populates="bank")
 
 
 class BankPublic(BankBase):

@@ -2,7 +2,6 @@ from datetime import date, timedelta
 from typing import List
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_FLOOR, getcontext, ROUND_HALF_UP, InvalidOperation
-from src.depositRegister.model.income import Income, IncomeStatus
 from src.depositRegister.model.parameters import InterestTerms
 from src.depositRegister.service.utils import to_dec
 

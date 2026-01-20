@@ -1,11 +1,9 @@
 from enum import Enum
 from sqlmodel import SQLModel, Relationship, Field as SQLField
 from typing import Optional, TYPE_CHECKING
-from src.depositRegister.model.parameters import IncomeStatus
-
+4
 if TYPE_CHECKING:
     from src.depositRegister.model.deposit import Deposit
-    from src.depositRegister.model.deposit import DepositPublic
 
 class CustomerBase(SQLModel):
     first_name:     str

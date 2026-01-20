@@ -1,52 +1,15 @@
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_FLOOR, getcontext, ROUND_HALF_UP, InvalidOperation
-# from src.depositRegister.model.income import Income, IncomeStatus
-# from src.depositRegister.model.parameters import InterestTerms
 from src.depositRegister.service.utils import to_dec
 
 
 def calc_close_date(date_open: date, duration: int) -> date:
     return date_open + timedelta(days=duration)
 
-def _calc_begin_date(date_payment: date, duration: int) -> date:
-    return date_payment - timedelta(days=duration)
 
-
-# def calc_interest_accrued(obj) -> Decimal:
-#     sum = 0
-#     today = date.today()
-#     for income in obj.incomes:
-#         date_begin = _calc_begin_date(income.date_payment, income.period)
-#         date_end = income.date_payment
-        
-#         if(income.status == IncomeStatus.PENDING and today > date_end):
-#             sum += income.value
-
-#         elif(income.status == IncomeStatus.PENDING and today <= date_end):
-#             days = (today - date_begin).days
-#             sum = income.value*days/income.period
-
-#     return to_dec(sum)
-    
-
-# def calc_interest_paid(obj) -> Decimal:
-#     sum = 0
-
-#     for income in obj.incomes:
-#         if (income.status == IncomeStatus.PAID):
-#             sum += income.value
-
-#     return to_dec(sum)
-
-
-# def calc_interest_total(obj) -> Decimal:
-#     sum = 0
-
-#     for income in obj.incomes:
-#         sum += income.value
-
-#     return to_dec(sum)
+# def _calc_begin_date(date_payment: date, duration: int) -> date:
+#     return date_payment - timedelta(days=duration)
 
 
 # def calc_effective_annual_rate(obj) -> Decimal:

@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Relationship, Field as SQLField
 from typing import Optional, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from src.depositRegister.model.deposit import Deposit
+# if TYPE_CHECKING:
+#     from src.depositRegister.model.deposit import Deposit
 
 class CurrencyBase(SQLModel):
     name: str

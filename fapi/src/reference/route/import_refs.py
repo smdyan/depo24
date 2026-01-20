@@ -46,7 +46,7 @@ async def import_from_csv(path: Path, create_model, db_model, session: SessionDe
 
     return created, errors
 
-@router.post("/import-all")
+@router.post("/import-data")
 async def import_refs(session: SessionDep):
     
     customer_created, customer_errors = await import_from_csv(

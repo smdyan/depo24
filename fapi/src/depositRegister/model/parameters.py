@@ -35,7 +35,3 @@ class DepositOperationType(str, Enum):
     CHANGE_DURATION = "change_duration"
     CHANGE_RATE = "change_rate"
 
-
-class IncomeStatus(str, Enum):                  # УДАЛИТЬ
-    PENDING = "pending"                         # предстоящая выплата %
-    PAID = "paid"

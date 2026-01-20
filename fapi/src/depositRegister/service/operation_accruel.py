@@ -12,7 +12,6 @@ from src.depositRegister.service.utils import to_dec
 
 @dataclass
 class AccrualResult:
-    operations: list["Operation"]
     last_accrual_date: date
     accrued_value: Decimal
     principal_value: Decimal
@@ -20,6 +19,7 @@ class AccrualResult:
     capitalized_value: Decimal
     paid_value: Decimal
     status: DepositStatus
+    operations: list[Operation] = field(default_factory=list)
 
 # при прогоне функции необходимо отслеживать изменение ставки - сейчас это не реализовано
 def calc_accruels(
@@ -27,10 +27,9 @@ def calc_accruels(
     day_count_base: int = 365,
 ) -> AccrualResult:    
 
-    operations: list[Operation] = field(default_factory=list)
+    # operations: list[Operation] = []
 
     res = AccrualResult (
-        operations = operations,
         last_accrual_date = deposit.date_last_accrual,
         accrued_value = deposit.accrued_value,
         principal_value = deposit.principal_value,
@@ -49,7 +48,7 @@ def calc_accruels(
     min_date = min(date_operation, deposit.date_close)
     accrual_period_end = min_date - timedelta(days=1)                       # T
 
-    if deposit.date_last_accrual >= accrual_period_end:
+    if deposit.date_last_accrual == accrual_period_end:
         raise AccrualAlreadyDone(f"Deposit {deposit.id} accruels already done")
 
     rate: Decimal = deposit.nominal_rate
