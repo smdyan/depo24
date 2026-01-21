@@ -1,12 +1,16 @@
 from fastapi import HTTPException, APIRouter
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import select
+from decimal import Decimal, InvalidOperation
 from typing import List
 from src.database import SessionDep
+from datetime import date
 from src.depositRegister.model.deposit import Deposit, DepositCreate, DepositPublicWithOps, DepositPublic
-from src.depositRegister.errors import AccrualError
+from src.depositRegister.errors import DepositError
 from src.depositRegister.service.parameters import calc_close_date
 from src.depositRegister.service.operation_open import get_open_operation
 from src.depositRegister.service.operation_accruel import calc_accruels
+from src.depositRegister.service.operation_rate import get_rate_change_operation
 
 
 router = APIRouter(prefix="/deposits", tags=["deposits"])
@@ -63,18 +67,18 @@ async def getBankDeposit(id: int, session: SessionDep):
     return obj
 
 
-@router.post("/{id:int}/jobs")
+@router.post("/{id:int}/jobs-run")
 
 async def doAccruels(id: int, session: SessionDep):
     obj = session.get( Deposit, id )
+    operation_date = date.today() 
     
     try:
-        result = calc_accruels(obj)
-    except AccrualError as e:
+        result = calc_accruels(obj, operation_date)
+    except DepositError as e:
         raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
     
     obj.operations.extend(result.operations)
-
     obj.date_last_accrual = result.last_accrual_date
     obj.accrued_value = result.accrued_value
     obj.principal_value = result.principal_value
@@ -86,5 +90,44 @@ async def doAccruels(id: int, session: SessionDep):
     session.add(obj)
     session.commit()
     session.refresh(obj)
+    return {"ok": True}
 
+
+class RateChangeRequest(BaseModel):
+    effective_from: date
+    new_rate: str = Field(..., description="Rate as decimal string, e.g. '12.50'")
+
+    @field_validator("new_rate")
+    @classmethod
+    def validate_new_rate(cls, v: str) -> str:
+        try:
+            r = Decimal(v)
+        except InvalidOperation:
+            raise ValueError("new_rate must be a decimal string")
+        if r <= 0 or r > 100:
+            raise ValueError("new_rate must be in (0, 100]")
+        return v
+
+
+@router.post("/{id:int}/rate-change")
+async def changeRate(id: int, req: RateChangeRequest, session: SessionDep):
+    obj = session.get(Deposit, id)
+    if not obj:
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": f"Deposit {id} not found"})
+
+    rate = Decimal(req.new_rate)
+    try:
+        op = get_rate_change_operation(
+            deposit=obj,
+            new_rate=rate,
+            effective_from_date=req.effective_from,
+            operation_date=date.today(),
+        )
+    except DepositError as e:
+        raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
+
+    obj.operations.append(op)
+    session.add(obj)
+    session.commit()
+    session.refresh(obj)
     return {"ok": True}

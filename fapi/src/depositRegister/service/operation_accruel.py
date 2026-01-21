@@ -24,6 +24,7 @@ class AccrualResult:
 # при прогоне функции необходимо отслеживать изменение ставки - сейчас это не реализовано
 def calc_accruels(
     deposit: Deposit,
+    operation_date: date,
     day_count_base: int = 365,
 ) -> AccrualResult:    
 
@@ -42,10 +43,9 @@ def calc_accruels(
     if deposit.status != DepositStatus.ACTIVE:
         raise DepositNotActive(f"Deposit {deposit.id} is not active")
 
-    date_operation = date.today()                                           # T+1
     accrual_period_start = deposit.date_last_accrual + timedelta(days=1)
     # период начисления заканчивается датой перед днем фактического проведения операции или перед днем закрытия вклада
-    min_date = min(date_operation, deposit.date_close)
+    min_date = min(operation_date, deposit.date_close)
     accrual_period_end = min_date - timedelta(days=1)                       # T
 
     if deposit.date_last_accrual == accrual_period_end:
@@ -64,7 +64,7 @@ def calc_accruels(
             Operation(
                 operation_type = DepositOperationType.INTEREST_ACCRUAL,
                 business_date = date_accrual,
-                operation_date = date_operation,
+                operation_date = operation_date,
                 amount = to_dec(accrual_per_day),
                 payload_json = json.dumps(payload_accrual, ensure_ascii=False),
             )
@@ -87,7 +87,7 @@ def calc_accruels(
                 Operation(
                     operation_type=operation_type,
                     business_date=date_payout,
-                    operation_date=date_operation,
+                    operation_date=operation_date,
                     amount=to_dec(res.accrued_value),
                     payload_json=json.dumps(payload, ensure_ascii=False),
                 )
@@ -105,7 +105,7 @@ def calc_accruels(
                 Operation(
                     operation_type = DepositOperationType.CLOSE,
                     business_date = deposit.date_close,
-                    operation_date = date_operation,
+                    operation_date = operation_date,
                     amount = to_dec(val),
                     payload_json = json.dumps(payload_close, ensure_ascii=False),
                 )

@@ -12,12 +12,13 @@ def get_open_operation(
     deposit: Deposit,
 ) -> Operation:
     
+    op_date = date.today()
     payload = build_open_rate_payload(initial_rate=deposit.nominal_rate, effective_from=deposit.date_open)
 
     op = Operation(
         operation_type=DepositOperationType.OPEN,
         business_date=deposit.date_open,
-        operation_date=date.today(),
+        operation_date=op_date,
         amount=deposit.principal_value,
         payload_json=json.dumps(payload, ensure_ascii=False),
     )
