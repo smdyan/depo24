@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Optional
 from dataclasses import dataclass, field
 import json
 from datetime import date, timedelta
-from decimal import Decimal, ROUND_FLOOR, getcontext
+from decimal import Decimal, InvalidOperation
 from src.depositRegister.model.operation import Operation
 from src.depositRegister.model.parameters import DepositOperationType, DepositStatus, InterestModes, InterestTerms, PeriodAnchor
 from src.depositRegister.model.deposit import Deposit
@@ -18,17 +18,17 @@ class AccrualResult:
     topup_value: Decimal
     capitalized_value: Decimal
     paid_value: Decimal
+    rate: Decimal
     status: DepositStatus
     operations: list[Operation] = field(default_factory=list)
 
-# при прогоне функции необходимо отслеживать изменение ставки - сейчас это не реализовано
+
 def calc_accruels(
     deposit: Deposit,
+    rate_ops: list[Operation],
     operation_date: date,
     day_count_base: int = 365,
 ) -> AccrualResult:    
-
-    # operations: list[Operation] = []
 
     res = AccrualResult (
         last_accrual_date = deposit.date_last_accrual,
@@ -37,6 +37,7 @@ def calc_accruels(
         topup_value = deposit.topup_value,
         capitalized_value = deposit.capitalized_value,
         paid_value = deposit.paid_value,
+        rate=deposit.nominal_rate,
         status = deposit.status
     )
 
@@ -46,19 +47,28 @@ def calc_accruels(
     accrual_period_start = deposit.date_last_accrual + timedelta(days=1)
     # период начисления заканчивается датой перед днем фактического проведения операции или перед днем закрытия вклада
     min_date = min(operation_date, deposit.date_close)
-    accrual_period_end = min_date - timedelta(days=1)                       # T
+    accrual_period_end = min_date - timedelta(days=1)
 
-    if deposit.date_last_accrual == accrual_period_end:
+    if deposit.date_last_accrual >= accrual_period_end:
         raise AccrualAlreadyDone(f"Deposit {deposit.id} accruels already done")
 
-    rate: Decimal = deposit.nominal_rate
+    pending_rate_ops = _get_pending_rate_ops(list(rate_ops), accrual_period_start)             # создает shallow-копию списка
+    pending_rate_ops.sort(key=lambda op: (_effective_from(op), op.operation_date))
+    next_rate_op = pending_rate_ops.pop(0) if pending_rate_ops else None
+    
     val: Decimal = _base_value(res.principal_value, res.topup_value, res.capitalized_value)
-    accrual_per_day: Decimal = _calc_int_per_day(val, rate, day_count_base)
+    accrual_per_day: Decimal
 
     # ежедневные начисления
     for date_accrual in _iter_days(accrual_period_start, accrual_period_end):
+        # проверка актуальной ставки
+        while next_rate_op is not None and date_accrual >= _effective_from(next_rate_op):
+            res.rate = _rate_from_op(next_rate_op)
+            next_rate_op = pending_rate_ops.pop(0) if pending_rate_ops else None
+
+        accrual_per_day = _calc_int_per_day(val, res.rate, day_count_base)          # каждый день считать накладно, но ладно
         res.accrued_value += accrual_per_day
-        payload_accrual = _build_accrual_payload(rate=rate, base_value=to_dec(val), accrued_value=to_dec(res.accrued_value))
+        payload_accrual = _build_accrual_payload(rate=res.rate, base_value=to_dec(val), accrued_value=to_dec(res.accrued_value))
         
         res.operations.append(
             Operation(
@@ -69,7 +79,7 @@ def calc_accruels(
                 payload_json = json.dumps(payload_accrual, ensure_ascii=False),
             )
         )
-        # выплата начисленных % или капитализация
+        # выплата начисленных % и капитализация
         if _is_payout_next_day(date_accrual, deposit):
             date_payout = date_accrual + timedelta(days=1)
 
@@ -94,7 +104,6 @@ def calc_accruels(
             )
             res.accrued_value = Decimal("0")
             val = _base_value(res.principal_value, res.topup_value, res.capitalized_value)
-            accrual_per_day = _calc_int_per_day(val, rate, day_count_base)
 
     res.last_accrual_date = accrual_period_end
 
@@ -139,9 +148,9 @@ def _build_accrual_payload(
     accrued_value: Decimal,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
-        "rate": format(rate, "f"),                                  # Decimal → string without scientific notation
-        "base_value": format(base_value, "f"),              # Decimal → string
-        "accrued_value": format(accrued_value, "f"),        # Decimal → string
+        "rate": format(rate, "f"),
+        "base_value": format(base_value, "f"),
+        "accrued_value": format(accrued_value, "f"),
     }
     return payload
 
@@ -192,3 +201,55 @@ def _base_value(principal_val, topup_val, capitalized_val) -> Decimal:
 
 def _calc_int_per_day(val: Decimal, r: Decimal, day_count_base: int) -> Decimal: 
     return val/Decimal(day_count_base)*r/Decimal("100")
+
+
+def _get_pending_rate_ops(rate_ops: list[Operation], min_effective_from: date) -> list[Operation]:
+    """Оставляет только операции изменения ставки, у которых payload.effective_from >= accrual_period_start."""
+    def keep(op: Operation) -> bool:
+        if not op.payload_json:
+            return False
+
+        try:
+            payload: dict[str, Any] = json.loads(op.payload_json)
+        except (TypeError, json.JSONDecodeError):
+            return False
+
+        eff_s = payload.get("effective_from")
+        if not eff_s:
+            return False
+
+        try:
+            eff_d = date.fromisoformat(eff_s)  # "YYYY-MM-DD"
+        except ValueError:
+            return False
+
+        return eff_d >= min_effective_from
+
+    rate_ops[:] = [op for op in rate_ops if keep(op)]
+    return rate_ops
+
+
+def _rate_from_op(op: Operation) -> Decimal:
+    if not op.payload_json:
+        raise ValueError("RATE_CHANGE op has empty payload_json")
+
+    payload: dict[str, Any] = json.loads(op.payload_json)
+    rate_s = payload.get("rate")
+    if rate_s is None or rate_s == "":
+        raise ValueError("RATE_CHANGE op payload has no 'rate'")
+
+    try:
+        return Decimal(str(rate_s))
+    except (InvalidOperation, ValueError) as e:
+        raise ValueError(f"RATE_CHANGE op payload has invalid rate: {rate_s!r}") from e
+
+def _effective_from(op: Operation) -> date:
+    if not op.payload_json:
+        raise ValueError("RATE_CHANGE op has empty payload_json")
+
+    payload: dict[str, Any] = json.loads(op.payload_json)
+    eff_s = payload.get("effective_from")
+    if not eff_s:
+        raise ValueError("RATE_CHANGE op payload has no 'effective_from'")
+
+    return date.fromisoformat(eff_s)

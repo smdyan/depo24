@@ -41,7 +41,7 @@ def build_rate_change_payload(
 ) -> dict[str, Any]:
 
     payload: dict[str, Any] = {
-        "rate": str(new_rate),
+        "rate": format(new_rate, "f"),
         "effective_from": effective_from.isoformat(),
         "reason": str("by user"),
     }

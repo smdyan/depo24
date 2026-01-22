@@ -6,6 +6,8 @@ from typing import List
 from src.database import SessionDep
 from datetime import date
 from src.depositRegister.model.deposit import Deposit, DepositCreate, DepositPublicWithOps, DepositPublic
+from src.depositRegister.model.operation import Operation
+from src.depositRegister.model.parameters import DepositOperationType
 from src.depositRegister.errors import DepositError
 from src.depositRegister.service.parameters import calc_close_date
 from src.depositRegister.service.operation_open import get_open_operation
@@ -23,7 +25,10 @@ def addDeposit(payload: DepositCreate, session: SessionDep):
     obj.date_close = calc_close_date(obj.date_open, obj.duration)
     obj.date_last_accrual = obj.date_open
     
-    operation = get_open_operation(obj)
+    operation = get_open_operation(
+        obj,
+        operation_date=date.today(),
+    )
     obj.operations.append(operation)
     
     session.add(obj)
@@ -70,26 +75,28 @@ async def getBankDeposit(id: int, session: SessionDep):
 @router.post("/{id:int}/jobs-run")
 
 async def doAccruels(id: int, session: SessionDep):
-    obj = session.get( Deposit, id )
+    dep = session.get( Deposit, id )
+    ops = session.exec(select(Operation).where(Operation.operation_type == DepositOperationType.CHANGE_RATE)).all()
     operation_date = date.today() 
     
     try:
-        result = calc_accruels(obj, operation_date)
+        result = calc_accruels(dep, ops, operation_date)
     except DepositError as e:
         raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
     
-    obj.operations.extend(result.operations)
-    obj.date_last_accrual = result.last_accrual_date
-    obj.accrued_value = result.accrued_value
-    obj.principal_value = result.principal_value
-    obj.topup_value = result.topup_value
-    obj.capitalized_value = result.capitalized_value
-    obj.paid_value = result.paid_value
-    obj.status = result.status
+    dep.operations.extend(result.operations)
+    dep.date_last_accrual = result.last_accrual_date
+    dep.accrued_value = result.accrued_value
+    dep.principal_value = result.principal_value
+    dep.topup_value = result.topup_value
+    dep.capitalized_value = result.capitalized_value
+    dep.paid_value = result.paid_value
+    dep.nominal_rate = result.rate
+    dep.status = result.status
 
-    session.add(obj)
+    session.add(dep)
     session.commit()
-    session.refresh(obj)
+    session.refresh(dep)
     return {"ok": True}
 
 
