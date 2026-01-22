@@ -9,9 +9,9 @@ from src.depositRegister.service.utils import to_dec
 from src.depositRegister.errors import WrongDate
 
 
-def get_rate_change_operation(
+def get_topup_operation(
     deposit: Deposit,
-    new_rate: Decimal,
+    topup_value: Decimal,
     effective_from_date: date,
     operation_date: date,
 ) -> Operation:
@@ -22,22 +22,23 @@ def get_rate_change_operation(
     if effective_from_date <= deposit.date_last_accrual:
         raise WrongDate(f"Effective date wrong, accruals already done for this date")
 
-    payload = build_rate_change_payload()
+
+    payload = build_topup_payload()
 
     op = Operation(
-        operation_type=DepositOperationType.CHANGE_RATE,
+        operation_type=DepositOperationType.TOPUP,
         business_date=effective_from_date,
         operation_date=operation_date,
-        amount=to_dec(new_rate),
+        amount=to_dec(topup_value),
         payload_json=json.dumps(payload, ensure_ascii=False),
     )
     return op
 
 
-def build_rate_change_payload() -> dict[str, Any]:
+def build_topup_payload() -> dict[str, Any]:
+
     payload: dict[str, Any] = {
-        "comment": str("Operation.amount contains Deposit.rate"),
-        "reason": str("by user"),
+        "comment": "na",
     }
     return payload
 

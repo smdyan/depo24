@@ -4,7 +4,7 @@ from sqlmodel import select
 from decimal import Decimal, InvalidOperation
 from typing import List
 from src.database import SessionDep
-from datetime import date
+from datetime import date, timedelta
 from src.depositRegister.model.deposit import Deposit, DepositCreate, DepositPublicWithOps, DepositPublic
 from src.depositRegister.model.operation import Operation
 from src.depositRegister.model.parameters import DepositOperationType
@@ -13,6 +13,7 @@ from src.depositRegister.service.parameters import calc_close_date
 from src.depositRegister.service.operation_open import get_open_operation
 from src.depositRegister.service.operation_accruel import calc_accruels
 from src.depositRegister.service.operation_rate import get_rate_change_operation
+from src.depositRegister.service.operation_topup import get_topup_operation
 
 
 router = APIRouter(prefix="/deposits", tags=["deposits"])
@@ -76,11 +77,28 @@ async def getBankDeposit(id: int, session: SessionDep):
 
 async def doAccruels(id: int, session: SessionDep):
     dep = session.get( Deposit, id )
-    ops = session.exec(select(Operation).where(Operation.operation_type == DepositOperationType.CHANGE_RATE)).all()
+    rate_ops = session.exec(
+        select(Operation)
+        .where(Operation.deposit_id == dep.id)
+        .where(Operation.operation_type == DepositOperationType.CHANGE_RATE)
+        .where(Operation.business_date > dep.date_last_accrual)
+        .order_by(Operation.business_date, Operation.operation_date)
+    ).all()
+    topup_ops = session.exec(
+        select(Operation)
+        .where(Operation.deposit_id == dep.id)
+        .where(Operation.operation_type == DepositOperationType.TOPUP)
+        .where(Operation.business_date > dep.date_last_accrual)
+        .order_by(Operation.business_date, Operation.operation_date)
+    ).all()
     operation_date = date.today() 
     
     try:
-        result = calc_accruels(dep, ops, operation_date)
+        result = calc_accruels(
+            deposit=dep, 
+            rate_ops=rate_ops, 
+            topup_ops=topup_ops, 
+            operation_date=operation_date)
     except DepositError as e:
         raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
     
@@ -100,33 +118,53 @@ async def doAccruels(id: int, session: SessionDep):
     return {"ok": True}
 
 
-class RateChangeRequest(BaseModel):
+class OperationRequest(BaseModel):
     effective_from: date
-    new_rate: str = Field(..., description="Rate as decimal string, e.g. '12.50'")
+    value: str = Field(..., description="Value as decimal string, e.g. '12.50'")
 
-    @field_validator("new_rate")
+    @field_validator("value")
     @classmethod
-    def validate_new_rate(cls, v: str) -> str:
+    def validate_value(cls, v: str) -> str:
         try:
             r = Decimal(v)
         except InvalidOperation:
-            raise ValueError("new_rate must be a decimal string")
-        if r <= 0 or r > 100:
-            raise ValueError("new_rate must be in (0, 100]")
+            raise ValueError("value must be a decimal string")
         return v
 
 
 @router.post("/{id:int}/rate-change")
-async def changeRate(id: int, req: RateChangeRequest, session: SessionDep):
+async def changeRate(id: int, req: OperationRequest, session: SessionDep):
     obj = session.get(Deposit, id)
     if not obj:
         raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": f"Deposit {id} not found"})
 
-    rate = Decimal(req.new_rate)
     try:
         op = get_rate_change_operation(
             deposit=obj,
-            new_rate=rate,
+            new_rate=Decimal(req.value),
+            effective_from_date=req.effective_from,
+            operation_date=date.today(),
+        )
+    except DepositError as e:
+        raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
+
+    obj.operations.append(op)
+    session.add(obj)
+    session.commit()
+    session.refresh(obj)
+    return {"ok": True}
+
+
+@router.post("/{id:int}/topup")
+async def topup(id: int, req: OperationRequest, session: SessionDep):
+    obj = session.get(Deposit, id)
+    if not obj:
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": f"Deposit {id} not found"})
+
+    try:
+        op = get_topup_operation(
+            deposit=obj,
+            topup_value=Decimal(req.value),
             effective_from_date=req.effective_from,
             operation_date=date.today(),
         )

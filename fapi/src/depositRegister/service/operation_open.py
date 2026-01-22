@@ -33,7 +33,7 @@ def build_rate_payload(
     
     payload: dict[str, Any] = {
         "rate": str(initial_rate),
-        "effective_from": effective_from.isoformat(),
+                                            # "effective_from": effective_from.isoformat(),
         "reason": str("initial"),
     }
     return payload
