@@ -19,19 +19,19 @@ class InterestModes(str, Enum):
 
 class DepositStatus(str, Enum):
     CLOSED = "closed"
-    ACTIVE = "active"                                  # действующий вклад
+    ACTIVE = "active"
     
     
 class DepositOperationType(str, Enum):
     OPEN = "open"
     TOPUP = "topup"
-    WITHDRAWAL = "withdrawal"
+    WITHDRAWAL = "withdrawal"                       # no
     INTEREST_ACCRUAL = "interest_accrual"
     INTEREST_CAPITALIZE = "interest_capitalize"
     INTEREST_PAYOUT = "interest_payout"
     CLOSE = "close"
-    EARLY_CLOSE = "early_close"
-    CORRECTION = "correction"
-    CHANGE_DURATION = "change_duration"
+    EARLY_CLOSE = "early_close"                     # no
+    CORRECTION = "correction"                       # no
+    CHANGE_DURATION = "change_duration"             # no
     CHANGE_RATE = "change_rate"
 

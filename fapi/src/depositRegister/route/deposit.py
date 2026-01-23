@@ -7,7 +7,7 @@ from src.database import SessionDep
 from datetime import date, timedelta
 from src.depositRegister.model.deposit import Deposit, DepositCreate, DepositPublicWithOps, DepositPublic
 from src.depositRegister.model.operation import Operation
-from src.depositRegister.model.parameters import DepositOperationType
+from src.depositRegister.model.parameters import DepositOperationType, DepositStatus
 from src.depositRegister.errors import DepositError
 from src.depositRegister.service.parameters import calc_close_date
 from src.depositRegister.service.operation_open import get_open_operation
@@ -51,7 +51,9 @@ async def deleteDeposit(id: int, session: SessionDep):
 
 @router.get("/", response_model=List[DepositPublic])    #type annotation
 async def getAllDeposit(session: SessionDep):
-    obj_list = session.exec(select(Deposit)).all()
+    obj_list = session.exec(
+        select(Deposit).where(Deposit.status == DepositStatus.ACTIVE)
+    ).all()
     if not obj_list:
         raise HTTPException(status_code=404, detail="deposits not found")
     return obj_list

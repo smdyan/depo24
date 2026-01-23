@@ -54,22 +54,21 @@ class Deposit(DepositBase, table=True):
     bank: Optional["Bank"] = Relationship(back_populates="deposits")
     operations: Optional[List["Operation"]] = Relationship(back_populates="deposit")                # "deposit" is a name of the attribute in the other model class "Operation"
 
+
 class DepositCreate(DepositBase):
     model_config = {"extra": "forbid"}
 
 
 class DepositPublic(DepositBase):
     id: int
-   
     customer_id: int | None = PydanticField(exclude=True)
-    
     customer: Optional["CustomerPublic"] = PydanticField(default=None, exclude=True)
     
     @computed_field(return_type=str | None)
     def customer_name(self) -> str | None:
         if self.customer is None:
             return None
-        return f"{self.customer.second_name} {self.customer.first_name} {self.customer.middle_name}"
+        return f"{self.customer.second_name} {self.customer.first_name}"
     
     bank: Optional["BankPublic"] = PydanticField(default=None, exclude=True)
     bank_id: int | None = PydanticField(exclude=True)
@@ -88,5 +87,3 @@ class DepositPublic(DepositBase):
 class DepositPublicWithOps(DepositPublic):
     operations: List["OperationPublic"] = PydanticField(default_factory=list)
 
-
-# DepositPublicWithOps.model_rebuild()

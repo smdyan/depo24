@@ -29,7 +29,7 @@ npm run dev -- --host 127.0.0.1 --port 5175
 npm run build
 ```
 
-### Compile and Minify for Production
+### останов
 
 lsof -nP -iTCP:5175 -sTCP:LISTEN //Узнать PID
 kill <PID> //Остановить
