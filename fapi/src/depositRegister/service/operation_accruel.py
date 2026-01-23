@@ -1,8 +1,8 @@
-from typing import Any, Optional
+from typing import Any
 from dataclasses import dataclass, field
 import json
 from datetime import date, timedelta
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from src.depositRegister.model.operation import Operation
 from src.depositRegister.model.parameters import DepositOperationType, DepositStatus, InterestModes, InterestTerms, PeriodAnchor
 from src.depositRegister.model.deposit import Deposit
@@ -27,10 +27,13 @@ def calc_accruels(
     *,
     deposit: Deposit,
     rate_ops: list[Operation],              # pending operations
-    topup_ops: list[Operation],              # pending operations
+    topup_ops: list[Operation],             # pending operations
     operation_date: date,
     day_count_base: int = 365,
 ) -> AccrualResult:    
+
+    rate_ops = list(rate_ops)               # shallow copy
+    topup_ops = list(topup_ops)
 
     res = AccrualResult (
         last_accrual_date = deposit.date_last_accrual,
@@ -69,6 +72,7 @@ def calc_accruels(
             next_rate_op = rate_ops.pop(0) if rate_ops else None
             accrual_per_day = _calc_int_per_day(val, res.rate, day_count_base)
         # проверка пополнения депозита
+        # проверить - порядок rate vs topup на одной дате!!!
         while next_topup_op is not None and date_accrual >= next_topup_op.business_date:
             res.topup_value += next_topup_op.amount
             next_topup_op = topup_ops.pop(0) if topup_ops else None
@@ -112,6 +116,7 @@ def calc_accruels(
             )
             res.accrued_value = Decimal("0")
             val = _base_value(res.principal_value, res.topup_value, res.capitalized_value)
+            accrual_per_day = _calc_int_per_day(val, res.rate, day_count_base)
 
     res.last_accrual_date = accrual_period_end
 

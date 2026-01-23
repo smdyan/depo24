@@ -1,7 +1,7 @@
 from typing import Any
 import json
 from datetime import date
-from decimal import Decimal, ROUND_FLOOR, getcontext
+from decimal import Decimal
 from src.depositRegister.model.operation import Operation
 from src.depositRegister.model.parameters import DepositOperationType
 from src.depositRegister.model.deposit import Deposit
@@ -13,28 +13,28 @@ def get_open_operation(
     operation_date: date,
 ) -> Operation:
     
-    payload = build_rate_payload(initial_rate=deposit.nominal_rate, effective_from=deposit.date_open)
+    payload = build_open_payload(initial_rate=deposit.nominal_rate, effective_from=deposit.date_open)
 
     op = Operation(
         operation_type=DepositOperationType.OPEN,
         business_date=deposit.date_open,
         operation_date=operation_date,
-        amount=deposit.principal_value,
+        amount=to_dec(deposit.principal_value),
         payload_json=json.dumps(payload, ensure_ascii=False),
     )
     return op
 
 
-def build_rate_payload(
+def build_open_payload(
     *,
     initial_rate: Decimal,
     effective_from: date,
 ) -> dict[str, Any]:
     
     payload: dict[str, Any] = {
-        "rate": str(initial_rate),
-                                            # "effective_from": effective_from.isoformat(),
-        "reason": str("initial"),
+        "rate": format(initial_rate, "f"),
+        "effective_from": effective_from.isoformat(),
+        "reason": "initial",
     }
     return payload
 

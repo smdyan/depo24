@@ -73,7 +73,7 @@ async def getBankDeposit(id: int, session: SessionDep):
     return obj
 
 
-@router.post("/{id:int}/jobs-run")
+@router.post("/{id:int}/run-jobs")
 
 async def doAccruels(id: int, session: SessionDep):
     dep = session.get( Deposit, id )
@@ -132,7 +132,7 @@ class OperationRequest(BaseModel):
         return v
 
 
-@router.post("/{id:int}/rate-change")
+@router.post("/{id:int}/change-rate")
 async def changeRate(id: int, req: OperationRequest, session: SessionDep):
     obj = session.get(Deposit, id)
     if not obj:
@@ -155,7 +155,7 @@ async def changeRate(id: int, req: OperationRequest, session: SessionDep):
     return {"ok": True}
 
 
-@router.post("/{id:int}/topup")
+@router.post("/{id:int}/topup-depo")
 async def topup(id: int, req: OperationRequest, session: SessionDep):
     obj = session.get(Deposit, id)
     if not obj:

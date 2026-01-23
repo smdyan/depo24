@@ -1,7 +1,7 @@
 from typing import Any
 import json
 from datetime import date
-from decimal import Decimal, ROUND_FLOOR, getcontext
+from decimal import Decimal
 from src.depositRegister.model.operation import Operation
 from src.depositRegister.model.parameters import DepositOperationType
 from src.depositRegister.model.deposit import Deposit
@@ -17,7 +17,7 @@ def get_topup_operation(
 ) -> Operation:
     
     if effective_from_date >= deposit.date_close:
-        raise WrongDate(f"Effective date wrong, behinde deposit close date")
+        raise WrongDate(f"Effective date wrong, behind deposit close date")
     
     if effective_from_date <= deposit.date_last_accrual:
         raise WrongDate(f"Effective date wrong, accruals already done for this date")
