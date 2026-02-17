@@ -3,7 +3,7 @@ import json
 from datetime import date
 from decimal import Decimal
 from src.depositRegister.model.operation import Operation
-from src.depositRegister.model.parameters import DepositOperationType
+from src.depositRegister.model.enums import DepositOperationType
 from src.depositRegister.model.deposit import Deposit
 from src.depositRegister.service.utils import to_dec
 from src.depositRegister.errors import WrongDate

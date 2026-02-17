@@ -4,13 +4,13 @@ from sqlmodel import select
 from decimal import Decimal, InvalidOperation
 from typing import List
 from src.database import SessionDep
-from datetime import date, timedelta
+from datetime import date
 from src.depositRegister.model.deposit import Deposit, DepositCreate, DepositPublicWithOps, DepositPublic
 from src.depositRegister.model.operation import Operation
-from src.depositRegister.model.parameters import DepositOperationType, DepositStatus
+from src.depositRegister.model.enums import DepositOperationType, DepositStatus
 from src.depositRegister.errors import DepositError
-from src.depositRegister.service.parameters import calc_close_date
-from src.depositRegister.service.operation_open import get_open_operation
+
+from src.depositRegister.service.operation_open import open_deposit
 from src.depositRegister.service.operation_accruel import calc_accruels
 from src.depositRegister.service.operation_rate import get_rate_change_operation
 from src.depositRegister.service.operation_topup import get_topup_operation
@@ -21,20 +21,22 @@ router = APIRouter(prefix="/deposits", tags=["deposits"])
 
 @router.post("/")
 def addDeposit(payload: DepositCreate, session: SessionDep):
-    obj = Deposit(**payload.model_dump(exclude_none=True))
+    dep = Deposit(**payload.model_dump(exclude_none=True))
     
-    obj.date_close = calc_close_date(obj.date_open, obj.duration)
-    obj.date_last_accrual = obj.date_open
-    
-    operation = get_open_operation(
-        obj,
+    res = open_deposit(
+        deposit=dep,
         operation_date=date.today(),
     )
-    obj.operations.append(operation)
-    
-    session.add(obj)
+
+    dep.date_last_accrual = res.date_last_accrual
+    dep.date_close = res.date_close
+    dep.balancedays_base = res.balancedays_base
+    dep.balancedays_exposure = res.balancedays_exposure
+    dep.operations.append(res.operation)
+
+    session.add(dep)
     session.commit()
-    session.refresh(obj)
+    session.refresh(dep)
 
     return {"ok": True}
 
@@ -76,7 +78,6 @@ async def getBankDeposit(id: int, session: SessionDep):
 
 
 @router.post("/{id:int}/run-jobs")
-
 async def doAccruels(id: int, session: SessionDep):
     dep = session.get( Deposit, id )
     rate_ops = session.exec(
@@ -96,7 +97,7 @@ async def doAccruels(id: int, session: SessionDep):
     operation_date = date.today() 
     
     try:
-        result = calc_accruels(
+        res = calc_accruels(
             deposit=dep, 
             rate_ops=rate_ops, 
             topup_ops=topup_ops, 
@@ -104,15 +105,18 @@ async def doAccruels(id: int, session: SessionDep):
     except DepositError as e:
         raise HTTPException(status_code=409, detail={"code": e.code, "message": str(e)})
     
-    dep.operations.extend(result.operations)
-    dep.date_last_accrual = result.last_accrual_date
-    dep.accrued_value = result.accrued_value
-    dep.principal_value = result.principal_value
-    dep.topup_value = result.topup_value
-    dep.capitalized_value = result.capitalized_value
-    dep.paid_value = result.paid_value
-    dep.nominal_rate = result.rate
-    dep.status = result.status
+    dep.operations.extend(res.operations)
+    dep.date_last_accrual = res.last_accrual_date
+    dep.accrued_value = res.accrued_value
+    dep.principal_value = res.principal_value
+    dep.topup_value = res.topup_value
+    dep.capitalized_income = res.capitalized_income
+    dep.paid_income = res.paid_income
+    dep.paid_principal = res.paid_principal
+    dep.nominal_rate = res.rate
+    dep.balancedays_base = res.bd_base
+    dep.balancedays_exposure = res.bd_exposure
+    dep.status = res.status
 
     session.add(dep)
     session.commit()

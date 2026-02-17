@@ -1,13 +1,14 @@
 from enum import Enum
 from sqlalchemy import Column, Numeric
 from sqlmodel import SQLModel, Relationship, Field as SQLField
-from pydantic import computed_field, Field as PydanticField
+from pydantic import computed_field, PrivateAttr, Field as PydanticField
 from decimal import Decimal
 from typing import List, Optional, TYPE_CHECKING
 from datetime import date
-# from src.depositRegister.service.parameters import calc_effective_annual_rate
-from src.depositRegister.model.parameters import (
-    InterestTerms, PeriodAnchor, InterestModes, DepositStatus )
+from src.depositRegister.service.deposit_analysis import get_deposit_analysis, AnalysisResult
+from src.depositRegister.model.enums import (
+    InterestTerms, PeriodAnchor, InterestModes, DepositStatus
+)
 
 if TYPE_CHECKING:
     from src.reference.model.customer import Customer, CustomerPublic
@@ -42,9 +43,12 @@ class DepositBase(SQLModel):
     date_last_accrual: date | None = SQLField(default=None, nullable=True)
     principal_value: Decimal = SQLField(sa_column=Column(Numeric(12, 2)))                           # Текущие агрегаты (для быстрого чтения). Истина — журнал операций.
     topup_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))             # тоже
-    capitalized_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))       # тоже
-    paid_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))              # тоже
-    accrued_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))           # тоже
+    capitalized_income: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))      # тоже
+    paid_income: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))             # тоже. сумма выплаченых начислений
+    paid_principal: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))          # тоже. сумма тела вклада и пополнений
+    accrued_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 4)))           # тоже
+    balancedays_base: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))         # exposure balance days at last accurual date
+    balancedays_exposure: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))     # exposure balance days at last accurual date
     status: DepositStatus | None = SQLField(default=DepositStatus.ACTIVE)
 
 
@@ -68,7 +72,7 @@ class DepositPublic(DepositBase):
     def customer_name(self) -> str | None:
         if self.customer is None:
             return None
-        return f"{self.customer.second_name} {self.customer.first_name}"
+        return f"{self.customer.full_name}"
     
     bank: Optional["BankPublic"] = PydanticField(default=None, exclude=True)
     bank_id: int | None = PydanticField(exclude=True)
@@ -79,11 +83,47 @@ class DepositPublic(DepositBase):
             return None
         return f"{self.bank.short_name}"
 
-    # @computed_field(return_type=Decimal)
-    # def effective_rate(self) -> Decimal:                # EAR
-    #     return calc_effective_annual_rate(self)
+    _analysis: Optional["AnalysisResult"] = PrivateAttr(default=None)
+
+    def _get_analysis(self) -> "AnalysisResult":
+        if self._analysis is None:
+            as_of = self.date_last_accrual
+            self._analysis = get_deposit_analysis(as_of, self)              # тут сидит ошибка, до первого акрула дата раньше на Т-1
+        return self._analysis
+    
+    @computed_field(return_type=Decimal)
+    def balance_base(self) -> Decimal:
+        return self._get_analysis().balance_base
+    
+    @computed_field(return_type=Decimal)
+    def balance_exposure(self) -> Decimal:
+        return self._get_analysis().balance_exposure
+    
+    @computed_field(return_type=Decimal)
+    def balance_average(self) -> Decimal:
+        return self._get_analysis().balance_average
+    
+    @computed_field(return_type=Decimal)
+    def anual_rate_base(self) -> Decimal:
+        return self._get_analysis().anual_rate_base
+    
+    @computed_field(return_type=Decimal)
+    def anual_rate_invest(self) -> Decimal:
+        return self._get_analysis().anual_rate_invest
+    
+    @computed_field(return_type=Decimal)
+    def income_to_accruel(self) -> Decimal:
+        return self._get_analysis().income_to_date
+    
+    @computed_field(return_type=Decimal)
+    def income_to_close(self) -> Decimal:
+        return self._get_analysis().income_to_close
+    
+    @computed_field(return_type=Decimal)
+    def product_ear(self) -> Decimal:
+        return self._get_analysis().product_ear
 
 
 class DepositPublicWithOps(DepositPublic):
-    operations: List["OperationPublic"] = PydanticField(default_factory=list)
 
+    operations: List["OperationPublic"] = PydanticField(default_factory=list)

@@ -1,7 +1,8 @@
 from enum import Enum
 from sqlmodel import SQLModel, Relationship, Field as SQLField
 from typing import Optional, TYPE_CHECKING
-4
+from pydantic import computed_field
+
 if TYPE_CHECKING:
     from src.depositRegister.model.deposit import Deposit
 
@@ -19,6 +20,10 @@ class Customer(CustomerBase, table=True):
 
 class CustomerPublic(CustomerBase):
     id: int
+
+    @computed_field(return_type=str | None)
+    def full_name(self) -> str | None:
+        return f"{self.second_name} {self.first_name}"
 
 
 class CustomerCreate(CustomerBase):

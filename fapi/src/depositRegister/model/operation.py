@@ -5,7 +5,7 @@ from typing import Any, Optional, TYPE_CHECKING
 from datetime import date
 import json
 from pydantic import field_validator
-from src.depositRegister.model.parameters import DepositOperationType
+from src.depositRegister.model.enums import DepositOperationType
 
 if TYPE_CHECKING:
     from src.depositRegister.model.deposit import Deposit

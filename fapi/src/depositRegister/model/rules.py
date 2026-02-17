@@ -1,5 +1,5 @@
 from enum import Enum
-from src.depositRegister.model.parameters import ProductType, DepositOperationType
+from src.depositRegister.model.enums import ProductType, DepositOperationType
 
 # логические коды счетов
 class LogicalAccount(str, Enum):

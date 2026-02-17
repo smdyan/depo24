@@ -2,8 +2,9 @@ from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 
 
 def to_dec(x, max_digits: int = 12, decimal_places: int = 2) -> Decimal:
-    """ Convert x to Decimal with fixed precision and scale.
-        Enforces max total digits and decimal places."""
+    """
+    Convert x to Decimal with fixed precision and scale. Enforces max total digits and decimal places.
+    """
     try:
         d = Decimal(str(x))
     except InvalidOperation:
