@@ -48,12 +48,12 @@
       customer_id: 0,
       description: "na",
       interest_term: "end_of_term",
-      interest_period_basis: "calendar_month",
-      interest_mode: "capitalize",
+      interest_period_basis: "deposit_open_date",
+      interest_mode: "payout",
       nominal_rate: 9,
       duration: 365,
       date_open: today,
-      principal_value: 0,
+      principal_value: 1000,
     }
   }
 
@@ -62,6 +62,20 @@
   function resetForm() {
     Object.assign(form, defaultForm())
   }
+
+  watch(
+    () => form.interest_term,
+    (term) => {
+      if (term === 'monthly') {
+        form.interest_period_basis = 'calendar_month';
+        form.interest_mode = 'capitalize';
+      } else if (term === 'end_of_term') {
+        form.interest_period_basis = 'deposit_open_date';
+        form.interest_mode = 'payout';
+      }
+    },
+    { immediate: true }
+  );
 
   const isActive = ref(false)
   
@@ -134,7 +148,7 @@
           :value="c.id"
           :disabled="c.status === false"
         >
-          {{ c.first_name }}
+          {{ c.full_name }}
         </option>
       </select>
     </label>
@@ -144,7 +158,7 @@
     </label>
 
     <label>rate
-      <input type="number" v-model.number="form.nominal_rate" step="0.01" min="0" />
+      <input type="number" v-model.number="form.nominal_rate" step="1" min="0" />
     </label>
 
     <label>interest_term
@@ -162,7 +176,7 @@
       </select>
     </label>
 
-    <label>Interest mode
+    <label>interest mode
       <select v-model="form.interest_mode" required>
         <option v-for="opt in interestModeOptions" :key="opt.value" :value="opt.value">
           {{ opt.label }}
@@ -175,7 +189,7 @@
     </label>
 
     <label>principal_value
-      <input type="number" v-model.number="form.principal_value" step="1" min="0" />
+      <input type="number" v-model.number="form.principal_value" step="1000" min="0" />
     </label>
 
     <label>description
