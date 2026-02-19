@@ -16,7 +16,7 @@
     }
   }
   
-  const customers = ref([])        // [{id, short_name, ...}]
+  const customers = ref([])                     // [{id, short_name, ...}]
   const customersLoading = ref(false)
 
   async function loadCustomers() {
@@ -104,7 +104,7 @@
       throw new Error('Выберите дату открытия')
     }
 
-    const { data } = await BankDepositService.create(payload)
+    const { data } = await BankDepositService.createDeposit(payload)
     resetForm()
 
   } catch (err) {
@@ -189,7 +189,7 @@
     </label>
 
     <label>principal_value
-      <input type="number" v-model.number="form.principal_value" step="1000" min="0" />
+      <input type="number" v-model.number="form.principal_value" step="1000" min="1" />
     </label>
 
     <label>description

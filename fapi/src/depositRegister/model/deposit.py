@@ -47,8 +47,8 @@ class DepositBase(SQLModel):
     paid_income: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))             # тоже. сумма выплаченых начислений
     paid_principal: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 2)))          # тоже. сумма тела вклада и пополнений
     accrued_value: Decimal | None = SQLField(default=0, sa_column=Column(Numeric(12, 4)))           # тоже
-    balancedays_base: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))         # exposure balance days at last accurual date
-    balancedays_exposure: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))     # exposure balance days at last accurual date
+    balancedays_base: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))         # base balance days at last accurual date
+    balancedays_cost: Decimal| None = SQLField(default=0, sa_column=Column(Numeric(14, 4)))         # contrubution balance days at last accurual date
     status: DepositStatus | None = SQLField(default=DepositStatus.ACTIVE)
 
 
@@ -92,36 +92,36 @@ class DepositPublic(DepositBase):
         return self._analysis
     
     @computed_field(return_type=Decimal)
-    def balance_base(self) -> Decimal:
-        return self._get_analysis().balance_base
+    def contributed_value(self) -> Decimal:
+        return self._get_analysis().contributed_value
     
     @computed_field(return_type=Decimal)
-    def balance_exposure(self) -> Decimal:
-        return self._get_analysis().balance_exposure
+    def balance_base(self) -> Decimal:
+        return self._get_analysis().balance_base
     
     @computed_field(return_type=Decimal)
     def balance_average(self) -> Decimal:
         return self._get_analysis().balance_average
     
     @computed_field(return_type=Decimal)
-    def anual_rate_base(self) -> Decimal:
-        return self._get_analysis().anual_rate_base
-    
-    @computed_field(return_type=Decimal)
-    def anual_rate_invest(self) -> Decimal:
-        return self._get_analysis().anual_rate_invest
-    
-    @computed_field(return_type=Decimal)
-    def income_to_accruel(self) -> Decimal:
-        return self._get_analysis().income_to_date
+    def income_realized(self) -> Decimal:
+        return self._get_analysis().income_realized
     
     @computed_field(return_type=Decimal)
     def income_to_close(self) -> Decimal:
         return self._get_analysis().income_to_close
     
     @computed_field(return_type=Decimal)
-    def product_ear(self) -> Decimal:
-        return self._get_analysis().product_ear
+    def apr_realized(self) -> Decimal:
+        return self._get_analysis().apr_realized
+
+    @computed_field(return_type=Decimal)
+    def irr(self) -> Decimal:
+        return self._get_analysis().irr
+    
+    @computed_field(return_type=Decimal)
+    def ear_current(self) -> Decimal:
+        return self._get_analysis().ear_current
 
 
 class DepositPublicWithOps(DepositPublic):

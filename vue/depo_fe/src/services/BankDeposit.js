@@ -15,7 +15,7 @@ class BankDepositService{
         return axios.post(`${DEPOSIT_API_BASE_URL}${id}/run-jobs`)
     }
 
-    create(payload) {
+    createDeposit(payload) {
         return axios.post(DEPOSIT_API_BASE_URL, payload, {
         headers: { 'Content-Type': 'application/json' }
         })

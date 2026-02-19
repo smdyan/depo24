@@ -15,17 +15,6 @@
       return toNum(n).toFixed(2)
     }
 
-    function depositSum(d) {
-      return money(toNum(d.principal_value) + toNum(d.topup_value))
-    }
-
-    function accruedSum(d) {
-      return money(
-        toNum(d.accrued_value) +
-        toNum(d.capitalized_value) +
-        toNum(d.paid_value)
-      )
-    }
 
     async function getAllBankDeposit() {
         loading.value = true
@@ -47,16 +36,16 @@
       loading.value = true
       errorMsg.value = ''
       try {
-        // 1) берём текущий список, чтобы знать id
+        // берём текущий список, чтобы знать id
         const { data: list } = await BankDepositService.getAllBankDeposit()
         const items = Array.isArray(list) ? list : []
 
-        // 2) запускаем jobs для каждого депозита (параллельно)
+        // запускаем jobs для каждого депозита (параллельно)
         const results = await Promise.allSettled(
           items.map(d => BankDepositService.runJobs(d.id))
         )
 
-        // 3) перезагружаем список после jobs
+        // перезагружаем список после jobs
         const { data: updated } = await BankDepositService.getAllBankDeposit()
         deposits.value = Array.isArray(updated) ? updated : []
       } catch (err) {
@@ -90,19 +79,21 @@
           <th>банк</th>
           <th>сумма</th>
           <th>срок (дн)</th>
-          <th>EAR %</th>
-          <th>начислено</th>
-          <th>дата закрытия</th>
+          <th>irr %</th>
+          <th>текущие</th>
+          <th>на конец</th>
+          <th>закрытие</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="d in deposits" :key="d.id">
           <td>{{ d.id }}</td>
           <td>{{ d.bank_name }}</td>
-          <td>{{ depositSum(d) }}</td>
+          <td>{{ d.contributed_value }}</td>
           <td>{{ d.duration }}</td>
-          <td>{{ d.effective_rate }}</td>
-          <td>{{ accruedSum(d) }}</td>
+          <td>{{ d.irr }}</td>
+          <td>{{ d.income_realized }}</td>
+          <td>{{ d.income_to_close }}</td>
           <td>{{ d.date_close }}</td>
         </tr>
         <tr v-if="!loading && deposits.length === 0">

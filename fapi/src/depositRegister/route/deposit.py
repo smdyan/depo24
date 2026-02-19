@@ -31,7 +31,7 @@ def addDeposit(payload: DepositCreate, session: SessionDep):
     dep.date_last_accrual = res.date_last_accrual
     dep.date_close = res.date_close
     dep.balancedays_base = res.balancedays_base
-    dep.balancedays_exposure = res.balancedays_exposure
+    dep.balancedays_cost = res.balancedays_exposure
     dep.operations.append(res.operation)
 
     session.add(dep)
@@ -40,7 +40,7 @@ def addDeposit(payload: DepositCreate, session: SessionDep):
 
     return {"ok": True}
 
-
+# удаляет все данные и операции по депозиту
 @router.delete("/{id}")
 async def deleteDeposit(id: int, session: SessionDep):
     deposit = session.get(Deposit, id)
@@ -75,6 +75,12 @@ async def getBankDeposit(id: int, session: SessionDep):
     if not obj:
         raise HTTPException(status_code=404, detail="deposit not found")
     return obj
+
+
+# @router.get("/analysis", response_model=DepositPublicWithOps)
+# async def getAnalysis(session: SessionDep):
+#     obj = session.get( Deposit, id )
+#     return obj
 
 
 @router.post("/{id:int}/run-jobs")
@@ -115,7 +121,7 @@ async def doAccruels(id: int, session: SessionDep):
     dep.paid_principal = res.paid_principal
     dep.nominal_rate = res.rate
     dep.balancedays_base = res.bd_base
-    dep.balancedays_exposure = res.bd_exposure
+    dep.balancedays_cost = res.bd_cost
     dep.status = res.status
 
     session.add(dep)

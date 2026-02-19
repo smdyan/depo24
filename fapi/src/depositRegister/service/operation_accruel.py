@@ -21,7 +21,7 @@ class AccrualResult:
     paid_principal: Decimal
     rate: Decimal
     bd_base: Decimal
-    bd_exposure: Decimal
+    bd_cost: Decimal
     status: DepositStatus
     operations: list[Operation] = field(default_factory=list)
 
@@ -48,7 +48,7 @@ def calc_accruels(
         paid_principal = deposit.paid_principal,
         rate=deposit.nominal_rate,
         bd_base=deposit.balancedays_base,
-        bd_exposure=deposit.balancedays_exposure,
+        bd_cost=deposit.balancedays_cost,
         status = deposit.status
     )
 
@@ -88,8 +88,8 @@ def calc_accruels(
         # ежедневные расчеты
         res.accrued_value += accrual_per_day
         payload_accrual = _build_accrual_payload(rate=res.rate, base_value=to_dec(base_val), accrued_value=to_dec(res.accrued_value))
-        res.bd_base += res.principal_value + res.topup_value + res.capitalized_income                        # adding working balance WB (база начисления)
-        res.bd_exposure += res.principal_value + res.topup_value - res.paid_income                           # adding exposure balance E (капитал под риском)
+        res.bd_base += res.principal_value + res.topup_value + res.capitalized_income                           # adding working balance WB (база начисления)
+        res.bd_cost += res.principal_value + res.topup_value - res.paid_income                                  # adding cuntributed value, reduced by deposit cost return
         res.operations.append(
             Operation(
                 operation_type = DepositOperationType.INTEREST_ACCRUAL,
