@@ -4,6 +4,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlmodel import SQLModel
+from sqlmodel.sql.sqltypes import AutoString
 
 # Ensure the project package is importable
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -30,6 +31,12 @@ config.set_main_option("sqlalchemy.url", sqlite_url)
 # target_metadata = mymodel.Base.metadata
 target_metadata = SQLModel.metadata
 
+def render_item(type_, obj, autogen_context):
+    # Превращаем SQLModel AutoString в чистый SQLAlchemy тип
+    if type_ == "type" and isinstance(obj, AutoString):
+        return "sa.String()"   # или "sa.String(length=255)" если хочешь фиксировать длину
+    return False
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -54,6 +61,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_item=render_item,
     )
 
     with context.begin_transaction():
@@ -63,8 +71,12 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode using the shared SQLModel engine."""
     with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
-
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_server_default=True,
+            render_item=render_item,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

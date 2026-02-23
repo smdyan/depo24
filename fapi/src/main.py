@@ -7,7 +7,7 @@ from src.database import create_db_and_tables
 
 
 async def Lifespan(app: FastAPI):
-    await create_db_and_tables()
+    # await create_db_and_tables()
     print("game")
     yield
     print("over")

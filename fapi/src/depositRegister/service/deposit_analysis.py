@@ -19,9 +19,9 @@ class AnalysisResult:
     balance_average: Decimal
     income_realized: Decimal
     income_to_close: Decimal
-    apr_realized: Decimal                                                                # annual percentage rate at base balance (учитывает среднее значение баланса по вкладу - балансо-дни)
-    irr: Decimal                                                                # return over investment at unrecovered cost (учитывает уменьшение инвестиции при выплатах %)
-    ear_current: Decimal                                                                # effective annual rate (приведен ко вкладу сроком 1 год с выплатой в конце срока)
+    apr_realized: Decimal                                                                   # annual percentage rate at base balance (учитывает среднее значение баланса по вкладу - балансо-дни)
+    irr: Decimal                                                                            # return over investment at unrecovered cost (учитывает уменьшение инвестиции при выплатах %)
+    ear_current: Decimal                                                                    # effective annual rate (приведен ко вкладу сроком 1 год с выплатой в конце срока)
 
     
     def __post_init__(self):

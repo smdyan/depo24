@@ -14,6 +14,7 @@ from src.depositRegister.service.operation_open import open_deposit
 from src.depositRegister.service.operation_accruel import calc_accruels
 from src.depositRegister.service.operation_rate import get_rate_change_operation
 from src.depositRegister.service.operation_topup import get_topup_operation
+from src.depositRegister.service.deposit_dash import get_deposit_summary, AnalysisResult
 
 
 router = APIRouter(prefix="/deposits", tags=["deposits"])
@@ -77,10 +78,13 @@ async def getBankDeposit(id: int, session: SessionDep):
     return obj
 
 
-# @router.get("/analysis", response_model=DepositPublicWithOps)
-# async def getAnalysis(session: SessionDep):
-#     obj = session.get( Deposit, id )
-#     return obj
+@router.get("/analysis", response_model=AnalysisResult)
+async def getAnalysis(session: SessionDep):
+    dep_list = session.exec(
+        select(Deposit).where(Deposit.status == DepositStatus.ACTIVE)
+    ).all()
+    ret = get_deposit_summary(dep_list)
+    return ret
 
 
 @router.post("/{id:int}/run-jobs")
